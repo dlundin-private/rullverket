@@ -16,9 +16,54 @@
     return { spelare: [], aktiv: null };
   }
   function spara() {
+    data.andrad = Date.now();
     try { localStorage.setItem(LAGRING, JSON.stringify(data)); } catch (e) { /* lagring saknas */ }
+    sparaMoln();
   }
   let data = ladda();
+
+  /* ---------- Molnsparning ----------
+     När spelet körs som delad länk i claude.ai sparas profilerna också på kontot
+     (privat för varje inloggad person), eftersom appen inte alltid behåller
+     webbläsarens lagring. I git-versionen finns ingen window.claude och då
+     används bara localStorage. */
+  let molnDok = null, molnTimer = null, molnSkriver = Promise.resolve();
+  async function startaMoln() {
+    if (!window.claude || typeof window.claude.use !== 'function') return;
+    try {
+      const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+      if (!db || !user) return;
+      const id = await user.id();
+      if (!id) return;
+      molnDok = db.collection('data/users/' + id).doc('rullverket');
+      const snap = await molnDok.get();
+      const moln = snap.exists && snap.data() && typeof snap.data().json === 'string' ? JSON.parse(snap.data().json) : null;
+      if (moln && Array.isArray(moln.spelare) && (moln.andrad || 0) >= (data.andrad || 0)) {
+        data = moln;
+        try { localStorage.setItem(LAGRING, JSON.stringify(data)); } catch (e) { /* lagring saknas */ }
+        efterMolnladdning();
+      } else if (data.spelare.length) {
+        sparaMoln(true);
+      }
+    } catch (e) { molnDok = null; }
+  }
+  function sparaMoln(direkt) {
+    if (!molnDok) return;
+    clearTimeout(molnTimer);
+    const skriv = () => {
+      const json = JSON.stringify(data);
+      molnSkriver = molnSkriver.then(() => molnDok.set({ json })).catch(() => {});
+    };
+    if (direkt) skriv(); else molnTimer = setTimeout(skriv, 700);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && molnTimer) { clearTimeout(molnTimer); molnTimer = null; sparaMoln(true); }
+  });
+  function efterMolnladdning() {
+    if (!banor.length) return;
+    if (!$('#spel').hidden) return;           // stör inte en pågående bana
+    if (aktiv()) { sattTema(aktiv().tema); visaKarta(); } else visaProfiler();
+  }
   const aktiv = () => data.spelare.find((s) => s.id === data.aktiv);
 
   /* ---------- Banor ---------- */
@@ -800,6 +845,7 @@
     if (aktiv()) sattTema(aktiv().tema);
     if (aktiv()) visaKarta(); else visaProfiler();
     requestAnimationFrame(slinga);
+    startaMoln();
   }).catch(() => {
     document.body.innerHTML = '<p style="padding:24px;font-size:18px">Banorna kunde inte laddas. Starta spelet via en webbserver, till exempel med npm run serve.</p>';
   });

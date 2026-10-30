@@ -1,5 +1,5 @@
 // Offline-cache. Höj VERSION vid varje ändring, annars visar installerade kopior den gamla versionen.
-const VERSION = 'rullverket-4';
+const VERSION = 'rullverket-5';
 const FILER = ['./', 'index.html', 'style.css', 'spel.js', 'motor.js', 'banor.json', 'vendor/matter.min.js',
   'manifest.webmanifest', 'ikoner/ikon.svg', 'ikoner/ikon-180.png', 'ikoner/ikon-192.png', 'ikoner/ikon-512.png'];
 self.addEventListener('install', (e) => {

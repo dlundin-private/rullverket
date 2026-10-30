@@ -12,7 +12,7 @@ Ett fysikpussel för barn 6–13 år. Varje bana har en eller flera bollar och e
 ## Filer
 - `public/index.html`, `style.css`: skal och utseende. Färger är CSS-variabler på `:root` med mörkt läge.
 - `public/motor.js`: spelmotorn. Bygger en Matter.js-värld av en bana plus placerade delar. Ingen DOM här, så samma fil körs i Node-testerna.
-- `public/spel.js`: gränssnittet: profiler, bankarta, dra-och-släpp, körning, ritning på canvas, sparning i localStorage (`rullverket-v1`).
+- `public/spel.js`: gränssnittet: profiler, bankarta, dra-och-släpp, körning, ritning på canvas, sparning i localStorage (`rullverket-v1`). När spelet körs som publicerad länk i claude.ai sparas samma data också i artefaktens databas under `data/users/<id>/rullverket` (fältet `json`), eftersom Claude-appen inte alltid behåller localStorage. Den nyaste versionen vinner (fältet `andrad`). Utan `window.claude` används bara localStorage.
 - `public/banor.json`: alla banor. Det enda som behöver ändras för att lägga till en bana.
 - `public/vendor/matter.min.js`: Matter.js 0.19.0, låst version. Uppgradera inte utan att köra testerna.
 - `public/sw.js`: offline-cache. **Höj `VERSION` vid varje ändring**, annars visar installerade kopior den gamla versionen.
