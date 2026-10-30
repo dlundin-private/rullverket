@@ -59,9 +59,10 @@ Om band och motorhjul: de drar bollens fart mot ytans fart vid kontakt (se `band
 1. Skriv banan i `banor.json` med en lösning i `losning`.
 2. Kör `npm test`. Banan måste misslyckas utan delar och lyckas med lösningen.
 3. Kör `npm run test:svep` för att se hur tålig lösningen är. Tidiga banor bör klara minst hälften av de små förskjutningarna, sena banor får vara knepigare.
-4. `node tests/prova.js fil.json grid planka x1 x2 y1 y2 [vinklar]` visar hur stor del av ett område som fungerar.
-5. Lärdom från de första banorna: gör målen generösa. En korg nedsänkt i marken med en vägg bakom fångar mycket fler bollar än en korg som står på marken.
-6. Höj `VERSION` i `public/sw.js`.
+4. `node tests/autosok.js fil.json [antal] [maxDelar]` slumpsöker lösningar för alla kombinationer av banans delar och visar hur ofta de lyckas. Banfilen behöver `delar` och `foremal`.
+5. `node tests/prova.js fil.json grid planka x1 x2 y1 y2 [vinklar]` visar hur stor del av ett område som fungerar.
+6. Lärdom från de första banorna: gör målen generösa. En korg nedsänkt i marken med en vägg bakom fångar mycket fler bollar än en korg som står på marken.
+7. Höj `VERSION` i `public/sw.js`.
 
 ## Lägga till en ny del
 1. Lägg till måtten i `DELAR` i `motor.js` och skapa kroppen i `delKropp`.
