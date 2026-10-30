@@ -44,8 +44,16 @@ Föremål i `foremal` (x, y är mittpunkt om inget annat sägs):
 - `lada`: rörlig låda. `b`, `h`, `"tung": true` gör den svår att knuffa.
 - `gunga`: gungbräda med led i `x, y`. `b` är längd, `vinkel` är startvinkel. Behöver stöd under ändarna.
 - `fjader`: fast fjäder som är en del av banan.
+- `band`: fast transportband. `b` är längd, valfri `vinkel`, `"vand": true` kör åt vänster (standard är åt höger längs bandet).
+- `motor`: fast motorhjul (radie 45). `"vand": true` snurrar moturs (standard medurs).
+- `snurra`: väderkvarn med armar som slår. `langd`, `armar` (2 eller 4), `fart` (radianer per bildruta), `vinkel`, `vand`. Den är kaotisk: utfallet beror på var armarna står när bollen kommer.
+- `hiss`: plattform som åker fram och tillbaka mellan `y` och `y + dy` på `tid` sekunder. `"vantar": "id"` gör att den står still tills en knapp med samma id trycks.
+- `knapp`: `y` är knappens underkant. `"oppnar": "id"` öppnar luckor och startar hissar med det id:t första gången något rörligt nuddar knappen.
+- `lucka`: fast block med `id` som försvinner när knappen trycks. `b`, `h`, valfri `vinkel`.
 
-Delar i verktygslådan: `planka` (160), `kort` (90), `ramp` (kil 120 × 60), `fjader` (studsar bollen åt det håll den pekar), `vikt` (tung låda som faller).
+Delar i verktygslådan: `planka` (160), `kort` (90), `ramp` (kil 120 × 60), `fjader` (studsar bollen åt det håll den pekar), `vikt` (tung låda som faller), `band` (transportband 160, vändbart med ⇄), `motor` (motorhjul som kastar, vändbart med ⇄). En placerad del kan ha `"vand": true`.
+
+Om band och motorhjul: de drar bollens fart mot ytans fart vid kontakt (se `band()` i `motor.js`). Hjulet är en fast cirkel som bara snurrar för syns skull. En snurra med armar som kroppar blev för slumpartad som del, därför finns den bara som banföremål.
 
 ## Lägga till en bana
 1. Skriv banan i `banor.json` med en lösning i `losning`.
@@ -58,4 +66,5 @@ Delar i verktygslådan: `planka` (160), `kort` (90), `ramp` (kil 120 × 60), `fj
 ## Lägga till en ny del
 1. Lägg till måtten i `DELAR` i `motor.js` och skapa kroppen i `delKropp`.
 2. Rita den i `ritaKropp` och ge den en ikon i `delIkon` i `spel.js`.
-3. Lägg till den i en banas `delar` och skriv ett test.
+3. Om den har en riktning: sätt `vandbar: true` i `DELAR`, så visas ⇄ i verktygsraden.
+4. Lägg till den i en banas `delar` och skriv ett test.

@@ -17,6 +17,11 @@
   --korg: #2e9e6a;
   --gunga: #3f9fa6;
   --fel: #e5484d;
+  --band: #2f3a4b;
+  --band-ljus: #9db0c6;
+  --motor: #f08a24;
+  --knapp-farg: #e5484d;
+  --lucka: #c9832a;
   --knapp: #f5c02e;
   --knapp-text: #3a2a00;
   --knapp-skugga: #c8960f;
@@ -34,6 +39,7 @@
     --sten: #8fa1b8; --tra: #d69a4b; --tra-kant: #f0c78c; --fjader: #ff6b6f;
     --vikt: #9a88e0; --boll: #f7c948; --boll-kant: #ffe08a; --korg: #3fc187;
     --gunga: #55c0c7; --stjarna-tom: #34495d; --knapp-skugga: #a07608;
+    --band: #0b1520; --band-ljus: #7f93aa; --motor: #ff9d45; --knapp-farg: #ff6b6f; --lucka: #e0a24e;
     color-scheme: dark;
   }
 }
@@ -43,6 +49,7 @@
   --sten: #8fa1b8; --tra: #d69a4b; --tra-kant: #f0c78c; --fjader: #ff6b6f;
   --vikt: #9a88e0; --boll: #f7c948; --boll-kant: #ffe08a; --korg: #3fc187;
   --gunga: #55c0c7; --stjarna-tom: #34495d; --knapp-skugga: #a07608;
+  --band: #0b1520; --band-ljus: #7f93aa; --motor: #ff9d45; --knapp-farg: #ff6b6f; --lucka: #e0a24e;
   color-scheme: dark;
 }
 html { scroll-padding-top: env(safe-area-inset-top, 0px); }

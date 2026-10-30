@@ -19,8 +19,23 @@
     kort:   { namn: 'Kort planka', b: 90, h: 16 },
     ramp:   { namn: 'Ramp', b: 120, h: 60 },
     fjader: { namn: 'Fjäder', b: 80, h: 16, kraft: 15 },
-    vikt:   { namn: 'Vikt', b: 50, h: 50 }
+    vikt:   { namn: 'Vikt', b: 50, h: 50 },
+    band:   { namn: 'Transportband', b: 160, h: 18, fart: 5, vandbar: true },
+    motor:  { namn: 'Motorhjul', b: 90, h: 90, r: 45, fart: 12, vandbar: true }
   };
+  const KNAPP_H = 10;
+
+  // Snurra: armar runt ett nav. Statisk kropp som vrids varje steg (finns bara som banföremål).
+  function snurraKropp(x, y, vinkel, langd, armar) {
+    const l = langd || 150;
+    const n = armar || 4;
+    const delar = [];
+    for (let i = 0; i < n / 2; i++) {
+      delar.push(Bodies.rectangle(x, y, l, 14, { angle: rad(vinkel) + i * Math.PI / (n / 2) }));
+    }
+    const k = Body.create({ parts: delar, isStatic: true, friction: 0.05, frictionStatic: 0.05 });
+    return k;
+  }
 
   const rad = (g) => (g || 0) * Math.PI / 180;
 
@@ -30,7 +45,7 @@
   }
 
   // Skapar kroppen för en placerad del. x,y är delens mittpunkt.
-  function delKropp(typ, x, y, vinkel) {
+  function delKropp(typ, x, y, vinkel, vand) {
     const d = DELAR[typ];
     let k;
     if (typ === 'ramp') {
@@ -41,10 +56,12 @@
       Body.rotate(k, rad(vinkel), { x, y });
     } else if (typ === 'vikt') {
       k = Bodies.rectangle(x, y, d.b, d.h, { density: 0.02, friction: 0.4, angle: rad(vinkel) });
+    } else if (typ === 'motor') {
+      k = Bodies.circle(x, y, d.r, { isStatic: true, friction: 0.05, frictionStatic: 0.05, angle: rad(vinkel) });
     } else {
       k = Bodies.rectangle(x, y, d.b, d.h, { isStatic: true, friction: 0.05, frictionStatic: 0.05, angle: rad(vinkel) });
     }
-    k.rv = { roll: 'del', typ };
+    k.rv = { roll: 'del', typ, vand: !!vand };
     return k;
   }
 
@@ -77,6 +94,30 @@
         const v = Bodies.rectangle(o.x - b / 2 - t / 2, o.y - h / 2, t, h, opt);
         const hg = Bodies.rectangle(o.x + b / 2 + t / 2, o.y - h / 2, t, h, opt);
         for (const k of [golv, v, hg]) { k.rv = { roll: 'korg' }; ut.push(k); }
+      } else if (o.typ === 'band') {
+        const k = Bodies.rectangle(o.x, o.y, o.b || DELAR.band.b, DELAR.band.h, { isStatic: true, friction: 0.05, frictionStatic: 0.05, angle: rad(o.vinkel) });
+        k.rv = { roll: 'fast', typ: 'band', vand: !!o.vand };
+        ut.push(k);
+      } else if (o.typ === 'motor') {
+        const k = Bodies.circle(o.x, o.y, DELAR.motor.r, { isStatic: true, friction: 0.05, frictionStatic: 0.05 });
+        k.rv = { roll: 'fast', typ: 'motor', vand: !!o.vand };
+        ut.push(k);
+      } else if (o.typ === 'snurra') {
+        const k = snurraKropp(o.x, o.y, o.vinkel, o.langd, o.armar);
+        k.rv = { roll: 'fast', typ: 'snurra', vand: !!o.vand, fart: o.fart || 0.03 };
+        ut.push(k);
+      } else if (o.typ === 'hiss') {
+        const k = Bodies.rectangle(o.x, o.y, o.b || 120, 16, { isStatic: true, friction: 0.3, frictionStatic: 0.5 });
+        k.rv = { roll: 'hiss', typ: 'hiss', start: { x: o.x, y: o.y }, dy: o.dy, tid: o.tid || 3, vantar: o.vantar || null };
+        ut.push(k);
+      } else if (o.typ === 'knapp') {
+        const k = Bodies.rectangle(o.x, o.y - KNAPP_H / 2, o.b || 60, KNAPP_H, { isStatic: true, friction: 0.3 });
+        k.rv = { roll: 'knapp', typ: 'knapp', oppnar: o.oppnar };
+        ut.push(k);
+      } else if (o.typ === 'lucka') {
+        const k = Bodies.rectangle(o.x, o.y, o.b, o.h, { isStatic: true, friction: 0.05, frictionStatic: 0.05, angle: rad(o.vinkel) });
+        k.rv = { roll: 'lucka', typ: 'lucka', id: o.id };
+        ut.push(k);
       } else if (o.typ === 'gunga') {
         const l = o.b || 220;
         const k = Bodies.rectangle(o.x, o.y, l, 14, { density: 0.004, friction: 0.3, angle: rad(o.vinkel) });
@@ -103,8 +144,57 @@
     const engine = Engine.create({ positionIterations: 8, velocityIterations: 6 });
     engine.gravity.y = 1;
     const { kroppar, leder } = banKroppar(bana);
-    const delar = placerade.map((p) => delKropp(p.typ, p.x, p.y, p.vinkel));
+    const delar = placerade.map((p) => delKropp(p.typ, p.x, p.y, p.vinkel, p.vand));
     Composite.add(engine.world, [...kroppar, ...delar, ...leder]);
+    const alla = kroppar.concat(delar);
+    const motorer = alla.filter((k) => k.rv.typ === 'motor' || k.rv.typ === 'snurra');
+    const hissar = alla.filter((k) => k.rv.typ === 'hiss');
+    let substeg = 0;
+
+    function rorMaskiner() {
+      substeg++;
+      for (const m of motorer) {
+        if (m.rv.typ === 'motor') {
+          // hjulet snurrar bara för syns skull; kraften läggs på i band()
+          Body.setAngle(m, m.angle + (DELAR.motor.fart / DELAR.motor.r / SUBSTEG) * (m.rv.vand ? -1 : 1));
+          continue;
+        }
+        const w = (m.rv.fart / SUBSTEG) * (m.rv.vand ? -1 : 1);
+        Body.setAngle(m, m.angle + w, true);
+        Body.setAngularVelocity(m, w);
+      }
+      for (const h of hissar) {
+        if (h.rv.vantar) continue;                             // väntar på en knapp
+        if (h.rv.startad === undefined) h.rv.startad = substeg - 1;
+        const t = ((substeg - h.rv.startad) * DT) / 1000 / h.rv.tid;   // antal halvturer
+        const f = t % 2 < 1 ? t % 2 : 2 - (t % 2);             // 0→1→0
+        Body.setPosition(h, { x: h.rv.start.x, y: h.rv.start.y + h.rv.dy * f }, true);
+      }
+    }
+
+    function band(a, b) {
+      if (!a.rv || b.isStatic) return;
+      if (a.rv.typ === 'motor') {
+        // Motorhjul: ytan rör sig medurs (eller moturs om vänt) och drar med sig det som rör vid den
+        const n = Vector.normalise(Vector.sub(b.position, a.position));
+        const dir = a.rv.vand ? -1 : 1;
+        const t = { x: -n.y * dir, y: n.x * dir };
+        const vt = Vector.dot(b.velocity, t);
+        let v = Vector.add(b.velocity, Vector.mult(t, (DELAR.motor.fart - vt) * 0.6));
+        const vn = Vector.dot(v, n);
+        if (vn < 0) v = Vector.sub(v, Vector.mult(n, vn));
+        Body.setVelocity(b, v);
+        return;
+      }
+      if (a.rv.typ !== 'band') return;
+      const dir = a.rv.vand ? -1 : 1;
+      const t = { x: Math.cos(a.angle) * dir, y: Math.sin(a.angle) * dir };
+      const vt = Vector.dot(b.velocity, t);
+      Body.setVelocity(b, Vector.add(b.velocity, Vector.mult(t, (DELAR.band.fart - vt) * 0.35)));
+    }
+    Events.on(engine, 'collisionActive', (e) => {
+      for (const p of e.pairs) { band(p.bodyA, p.bodyB); band(p.bodyB, p.bodyA); }
+    });
 
     const bollar = kroppar.filter((k) => k.rv.roll === 'boll');
     const korgar = korgInre(bana);
@@ -122,6 +212,15 @@
             Body.setVelocity(b, Vector.add(Vector.mult(tang, 0.9), Vector.mult(nn, DELAR.fjader.kraft)));
             b.rv.studs = (b.rv.studs || 0) + 1;
           }
+          band(a, b);
+          if (a.rv && a.rv.typ === 'knapp' && !b.isStatic && !a.rv.tryckt) {
+            a.rv.tryckt = true;
+            for (const h of hissar) if (h.rv.vantar === a.rv.oppnar) h.rv.vantar = null;
+            for (const l of alla.filter((k) => k.rv.typ === 'lucka' && k.rv.id === a.rv.oppnar)) {
+              Composite.remove(engine.world, l);
+              l.rv.oppen = true;
+            }
+          }
         }
       }
     });
@@ -131,7 +230,7 @@
     }
 
     function steg() {
-      for (let i = 0; i < SUBSTEG; i++) Engine.update(engine, DT);
+      for (let i = 0; i < SUBSTEG; i++) { rorMaskiner(); Engine.update(engine, DT); }
       ruta++;
       for (const b of bollar) {
         const p = b.position;
@@ -143,7 +242,7 @@
       return { status: 'kor' };
     }
 
-    return { engine, world: engine.world, bollar, delar, steg, korgar, get ruta() { return ruta; } };
+    return { engine, world: engine.world, bollar, delar, alla, steg, korgar, get ruta() { return ruta; } };
   }
 
   // Index på placerade delar som ligger i vägen (överlappar bollar/lådor, eller en vikt i en vägg).
@@ -151,7 +250,7 @@
     const { kroppar } = banKroppar(bana);
     const rorliga = kroppar.filter((k) => !k.isStatic);
     const fasta = kroppar.filter((k) => k.isStatic);
-    const delar = placerade.map((p) => delKropp(p.typ, p.x, p.y, p.vinkel));
+    const delar = placerade.map((p) => delKropp(p.typ, p.x, p.y, p.vinkel, p.vand));
     const fel = [];
     delar.forEach((d, i) => {
       let mot = rorliga.concat(delar.filter((x, j) => j !== i && !x.isStatic));

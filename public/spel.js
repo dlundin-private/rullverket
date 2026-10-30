@@ -145,7 +145,7 @@
   }
 
   function byggOm() {
-    delKroppar = placerade.map((p) => Motor.delKropp(p.typ, p.x, p.y, p.vinkel));
+    delKroppar = placerade.map((p) => Motor.delKropp(p.typ, p.x, p.y, p.vinkel, p.vand));
     fel = Motor.iVagen(bana, placerade);
     ritaLada();
     uppdateraKnappar();
@@ -159,7 +159,9 @@
       kort: '<rect x="10" y="12" width="24" height="7" rx="2" fill="var(--tra)" stroke="var(--tra-kant)" stroke-width="1.5"/>',
       ramp: '<path d="M4 26 L40 26 L40 6 Z" fill="var(--tra)" stroke="var(--tra-kant)" stroke-width="1.5" stroke-linejoin="round"/>',
       fjader: '<rect x="6" y="6" width="32" height="6" rx="2" fill="var(--fjader)"/><path d="M10 13 l4 6 l4 -6 l4 6 l4 -6 l4 6 l4 -6" fill="none" stroke="var(--fjader)" stroke-width="2"/>',
-      vikt: '<rect x="11" y="3" width="22" height="22" rx="3" fill="var(--vikt)"/><text x="22" y="18" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">kg</text>'
+      vikt: '<rect x="11" y="3" width="22" height="22" rx="3" fill="var(--vikt)"/><text x="22" y="18" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">kg</text>',
+      band: '<rect x="2" y="10" width="40" height="10" rx="5" fill="var(--band)"/><path d="M12 12 l4 3 l-4 3 M21 12 l4 3 l-4 3 M30 12 l4 3 l-4 3" fill="none" stroke="var(--band-ljus)" stroke-width="1.8"/>',
+      motor: '<circle cx="22" cy="15" r="12" fill="var(--motor)"/><path d="M22 4 V26 M11 15 H33" stroke="#fff" stroke-width="2.5" opacity=".8"/><circle cx="22" cy="15" r="3.5" fill="#fff"/>'
     }[typ];
     return `<svg viewBox="0 0 44 30" aria-hidden="true">${f}</svg>`;
   }
@@ -250,7 +252,7 @@
     const d = placerade[drag.i];
     d.x = Math.round(klamp(p.x + drag.dx, 0, VARLD.b));
     d.y = Math.round(klamp(p.y + drag.dy, 0, VARLD.h));
-    delKroppar[drag.i] = Motor.delKropp(d.typ, d.x, d.y, d.vinkel);
+    delKroppar[drag.i] = Motor.delKropp(d.typ, d.x, d.y, d.vinkel, d.vand);
   });
 
   function slapp(e) {
@@ -278,6 +280,9 @@
     const v = $('#delverktyg');
     if (vald < 0 || lage !== 'bygg' || drag || !placerade[vald]) { v.hidden = true; return; }
     const d = placerade[vald];
+    const m = DELAR[d.typ];
+    v.querySelector('[data-vand]').hidden = !m.vandbar;
+    v.querySelectorAll('[data-vrid]').forEach((k) => { k.hidden = d.typ === 'motor'; });
     const scen = $('#scen').getBoundingClientRect();
     let x = ox + d.x * skala;
     let y = oy + (d.y - Math.max(DELAR[d.typ].b, DELAR[d.typ].h) / 2 - 14) * skala;
@@ -294,6 +299,8 @@
     if (k.hasAttribute('data-ta-bort')) {
       placerade.splice(vald, 1);
       vald = -1;
+    } else if (k.hasAttribute('data-vand')) {
+      placerade[vald].vand = !placerade[vald].vand;
     } else {
       const d = placerade[vald];
       d.vinkel = ((d.vinkel + Number(k.dataset.vrid) + 180) % 360 + 360) % 360 - 180;
@@ -387,9 +394,10 @@
 
   /* ---------- Ritning ---------- */
   let farg = {};
+  let klocka = 0;
   function lasFarger() {
     const cs = getComputedStyle(document.documentElement);
-    for (const n of ['papper', 'rutnat', 'sten', 'tra', 'tra-kant', 'fjader', 'vikt', 'boll', 'boll-kant', 'korg', 'gunga', 'fel'])
+    for (const n of ['papper', 'rutnat', 'sten', 'tra', 'tra-kant', 'fjader', 'vikt', 'boll', 'boll-kant', 'korg', 'gunga', 'fel', 'band', 'band-ljus', 'motor', 'knapp-farg', 'lucka'])
       farg[n] = cs.getPropertyValue('--' + n).trim();
   }
   lasFarger();
@@ -419,7 +427,70 @@
       ctx.restore();
       return;
     }
-    if (typ === 'fjader') {
+    if (typ === 'band') {
+      const v = k.vertices;
+      const l = Math.hypot(v[1].x - v[0].x, v[1].y - v[0].y);
+      const h = Motor.DELAR.band.h;
+      const dir = k.rv.vand ? -1 : 1;
+      ctx.save();
+      ctx.translate(k.position.x, k.position.y); ctx.rotate(k.angle);
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-l / 2, -h / 2, l, h, h / 2) : ctx.rect(-l / 2, -h / 2, l, h);
+      ctx.fillStyle = farg.band; ctx.fill();
+      ctx.save(); ctx.clip();
+      const steg = 22, fas = ((klocka * Motor.DELAR.band.fart * 60 * dir) % steg + steg) % steg;
+      ctx.beginPath();
+      for (let x = -l / 2 - steg + fas; x < l / 2 + steg; x += steg) {
+        ctx.moveTo(x - 4 * dir, -5); ctx.lineTo(x + 3 * dir, 0); ctx.lineTo(x - 4 * dir, 5);
+      }
+      ctx.strokeStyle = farg['band-ljus']; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.restore();
+      for (const x of [-l / 2 + h / 2, l / 2 - h / 2]) {
+        ctx.beginPath(); ctx.arc(x, 0, h / 2 - 3, 0, Math.PI * 2); ctx.fillStyle = farg['band-ljus']; ctx.fill();
+      }
+      ctx.restore();
+    } else if (typ === 'motor') {
+      const r = k.circleRadius;
+      const dir = k.rv.vand ? -1 : 1;
+      const vinkel = klocka * (Motor.DELAR.motor.fart / r) * 60 * dir;
+      ctx.save();
+      ctx.translate(k.position.x, k.position.y);
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fillStyle = farg.motor; ctx.fill();
+      ctx.rotate(vinkel);
+      ctx.beginPath();
+      for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2; ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * (r - 6), Math.sin(a) * (r - 6)); }
+      ctx.strokeStyle = '#fff'; ctx.globalAlpha = 0.75; ctx.lineWidth = 6; ctx.stroke(); ctx.globalAlpha = 1;
+      ctx.rotate(-vinkel);
+      // pil som visar åt vilket håll hjulet snurrar
+      ctx.beginPath(); ctx.arc(0, 0, r + 9, -2.3, -0.8);
+      ctx.strokeStyle = farg.motor; ctx.lineWidth = 3; ctx.stroke();
+      const ax = dir > 0 ? Math.cos(-0.8) * (r + 9) : Math.cos(-2.3) * (r + 9);
+      const ay = dir > 0 ? Math.sin(-0.8) * (r + 9) : Math.sin(-2.3) * (r + 9);
+      ctx.beginPath(); ctx.arc(ax, ay, 4.5, 0, Math.PI * 2); ctx.fillStyle = farg.motor; ctx.fill();
+      ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+      ctx.restore();
+    } else if (typ === 'snurra') {
+      for (const p of k.parts.slice(1)) { vagPath(p.vertices); ctx.fillStyle = farg.motor; ctx.fill(); }
+      ctx.beginPath(); ctx.arc(k.position.x, k.position.y, 10, 0, Math.PI * 2); ctx.fillStyle = farg.sten; ctx.fill();
+    } else if (typ === 'hiss') {
+      vagPath(k.vertices); ctx.fillStyle = farg.gunga; ctx.fill();
+      ctx.lineWidth = 2.5; ctx.strokeStyle = farg.sten; ctx.stroke();
+    } else if (typ === 'knapp') {
+      ctx.save();
+      ctx.translate(k.position.x, k.position.y);
+      const b = k.bounds.max.x - k.bounds.min.x;
+      ctx.fillStyle = farg.sten; ctx.fillRect(-b / 2 - 6, 2, b + 12, 4);
+      ctx.fillStyle = k.rv.tryckt ? farg.korg : farg['knapp-farg'];
+      const hh = k.rv.tryckt ? 4 : 10;
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-b / 2, 3 - hh, b, hh, 3) : ctx.rect(-b / 2, 3 - hh, b, hh); ctx.fill();
+      ctx.restore();
+    } else if (typ === 'lucka') {
+      vagPath(k.vertices); ctx.fillStyle = farg.lucka; ctx.fill();
+      ctx.save(); vagPath(k.vertices); ctx.clip();
+      ctx.beginPath();
+      for (let x = k.bounds.min.x - 60; x < k.bounds.max.x + 60; x += 14) { ctx.moveTo(x, k.bounds.min.y - 60); ctx.lineTo(x + 120, k.bounds.max.y + 60); }
+      ctx.strokeStyle = farg.sten; ctx.globalAlpha = 0.35; ctx.lineWidth = 5; ctx.stroke();
+      ctx.restore(); ctx.globalAlpha = 1;
+    } else if (typ === 'fjader') {
       ctx.save();
       ctx.translate(k.position.x, k.position.y);
       ctx.rotate(k.angle);
@@ -488,6 +559,13 @@
     for (let x = 50; x < VARLD.b; x += 50) { ctx.moveTo(x, 0); ctx.lineTo(x, VARLD.h); }
     for (let y = 50; y < VARLD.h; y += 50) { ctx.moveTo(0, y); ctx.lineTo(VARLD.b, y); }
     ctx.stroke();
+    klocka = sim ? sim.ruta / 60 : performance.now() / 1000;
+    // hissens spår
+    for (const o of bana.foremal) if (o.typ === 'hiss') {
+      ctx.beginPath(); ctx.moveTo(o.x, o.y + 8); ctx.lineTo(o.x, o.y + o.dy - 8);
+      ctx.strokeStyle = farg.sten; ctx.globalAlpha = 0.35; ctx.lineWidth = 4; ctx.setLineDash([10, 8]); ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha = 1;
+    }
     // korgens insida
     for (const o of bana.foremal) if (o.typ === 'korg') {
       ctx.fillStyle = farg.korg; ctx.globalAlpha = 0.16;

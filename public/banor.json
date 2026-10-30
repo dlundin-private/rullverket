@@ -184,6 +184,198 @@
         {"typ": "vikt", "x": 400, "y": 200, "vinkel": 0},
         {"typ": "fjader", "x": 490, "y": 540, "vinkel": 0}
       ]
+    },
+    {
+      "id": "bandet",
+      "namn": "Bandet",
+      "tips": "Bollen landar och blir stilla. Ett band kan bära den.",
+      "delar": {"band": 1},
+      "stjarnor": [1, 1],
+      "foremal": [
+        {"typ": "boll", "x": 200, "y": 120},
+        {"typ": "vagg", "x": 420, "y": 420, "b": 600, "h": 24},
+        {"typ": "korg", "x": 810, "y": 480, "b": 140, "h": 72},
+        {"typ": "vagg", "x": 930, "y": 420, "b": 100, "h": 24},
+        {"typ": "vagg", "x": 990, "y": 300, "b": 20, "h": 600}
+      ],
+      "losning": [
+        {"typ": "band", "x": 200, "y": 380, "vinkel": 0}
+      ]
+    },
+    {
+      "id": "uppfor",
+      "namn": "Uppför",
+      "tips": "Korgen ligger högre upp. Band kan gå uppför också.",
+      "delar": {"band": 2, "planka": 1},
+      "stjarnor": [2, 2],
+      "foremal": [
+        {"typ": "boll", "x": 200, "y": 100},
+        {"typ": "vagg", "x": 300, "y": 520, "b": 440, "h": 24},
+        {"typ": "vagg", "x": 690, "y": 430, "b": 160, "h": 24},
+        {"typ": "korg", "x": 845, "y": 490, "b": 130, "h": 72},
+        {"typ": "vagg", "x": 955, "y": 430, "b": 70, "h": 24},
+        {"typ": "vagg", "x": 990, "y": 200, "b": 20, "h": 400}
+      ],
+      "losning": [
+        {"typ": "band", "x": 220, "y": 490, "vinkel": 0},
+        {"typ": "band", "x": 500, "y": 460, "vinkel": -30}
+      ]
+    },
+    {
+      "id": "fel-hall",
+      "namn": "Åt fel håll",
+      "tips": "Bandet går åt fel håll. Vänd ditt eget band med ⇄.",
+      "delar": {"band": 1},
+      "stjarnor": [1, 1],
+      "foremal": [
+        {"typ": "boll", "x": 560, "y": 60},
+        {"typ": "band", "x": 620, "y": 470, "b": 420},
+        {"typ": "vagg", "x": 330, "y": 470, "b": 160, "h": 24},
+        {"typ": "korg", "x": 175, "y": 530, "b": 130, "h": 72},
+        {"typ": "vagg", "x": 12, "y": 350, "b": 24, "h": 380}
+      ],
+      "losning": [
+        {"typ": "band", "x": 480, "y": 200, "vinkel": 0, "vand": true}
+      ]
+    },
+    {
+      "id": "kastaren",
+      "namn": "Kastaren",
+      "tips": "Motorhjulet snurrar fort. Låt bollen rulla upp på det.",
+      "delar": {"motor": 1, "planka": 1},
+      "stjarnor": [1, 1],
+      "foremal": [
+        {"typ": "vagg", "x": 120, "y": 150, "b": 240, "h": 20, "vinkel": 12},
+        {"typ": "boll", "x": 30, "y": 110},
+        {"typ": "vagg", "x": 300, "y": 470, "b": 300, "h": 20},
+        {"typ": "vagg", "x": 20, "y": 360, "b": 20, "h": 240},
+        {"typ": "vagg", "x": 780, "y": 470, "b": 160, "h": 20},
+        {"typ": "korg", "x": 915, "y": 530, "b": 110, "h": 72},
+        {"typ": "vagg", "x": 990, "y": 300, "b": 20, "h": 600}
+      ],
+      "losning": [
+        {"typ": "motor", "x": 520, "y": 480, "vinkel": 0}
+      ]
+    },
+    {
+      "id": "hissen",
+      "namn": "Hissen",
+      "tips": "Hissen åker upp och ner. Hur kommer bollen av där uppe?",
+      "delar": {"fjader": 1, "planka": 1},
+      "stjarnor": [1, 1],
+      "foremal": [
+        {"typ": "boll", "x": 200, "y": 480},
+        {"typ": "hiss", "x": 200, "y": 520, "b": 120, "dy": -320, "tid": 3},
+        {"typ": "vagg", "x": 120, "y": 330, "b": 20, "h": 540},
+        {"typ": "vagg", "x": 280, "y": 420, "b": 20, "h": 360},
+        {"typ": "vagg", "x": 560, "y": 300, "b": 420, "h": 24, "vinkel": 5},
+        {"typ": "korg", "x": 850, "y": 400, "b": 140, "h": 72},
+        {"typ": "vagg", "x": 990, "y": 250, "b": 20, "h": 500}
+      ],
+      "losning": [
+        {"typ": "fjader", "x": 160, "y": 200, "vinkel": -45}
+      ]
+    },
+    {
+      "id": "knappen",
+      "namn": "Knappen",
+      "tips": "Luckan öppnas när något trycker på knappen.",
+      "delar": {"vikt": 1, "planka": 1},
+      "stjarnor": [1, 1],
+      "foremal": [
+        {"typ": "vagg", "x": 145, "y": 295, "b": 410, "h": 20, "vinkel": 45},
+        {"typ": "boll", "x": 25, "y": 135},
+        {"typ": "vagg", "x": 500, "y": 470, "b": 460, "h": 20},
+        {"typ": "korg", "x": 800, "y": 530, "b": 140, "h": 70},
+        {"typ": "lucka", "id": "a", "x": 800, "y": 465, "b": 164, "h": 12},
+        {"typ": "vagg", "x": 930, "y": 470, "b": 100, "h": 20},
+        {"typ": "vagg", "x": 990, "y": 300, "b": 20, "h": 600},
+        {"typ": "vagg", "x": 640, "y": 180, "b": 200, "h": 20},
+        {"typ": "knapp", "x": 640, "y": 170, "b": 70, "oppnar": "a"}
+      ],
+      "losning": [
+        {"typ": "vikt", "x": 600, "y": 60, "vinkel": 0}
+      ]
+    },
+    {
+      "id": "hjulhoppet",
+      "namn": "Hjulhoppet",
+      "tips": "Muren är för hög. Ett motorhjul kan kasta bollen uppåt.",
+      "delar": {"motor": 1, "planka": 1},
+      "stjarnor": [1, 1],
+      "foremal": [
+        {"typ": "boll", "x": 80, "y": 100},
+        {"typ": "vagg", "x": 20, "y": 420, "b": 20, "h": 200},
+        {"typ": "band", "x": 250, "y": 480, "b": 420},
+        {"typ": "vagg", "x": 620, "y": 500, "b": 30, "h": 200},
+        {"typ": "vagg", "x": 440, "y": 500, "b": 40, "h": 20},
+        {"typ": "korg", "x": 800, "y": 560, "b": 200, "h": 72},
+        {"typ": "vagg", "x": 990, "y": 300, "b": 20, "h": 600}
+      ],
+      "losning": [
+        {"typ": "motor", "x": 490, "y": 475, "vinkel": 0}
+      ]
+    },
+    {
+      "id": "vaderkvarnen",
+      "namn": "Väderkvarnen",
+      "tips": "Snurran skickar iväg bollen. Fånga den!",
+      "delar": {"planka": 2, "band": 1},
+      "stjarnor": [1, 2],
+      "foremal": [
+        {"typ": "boll", "x": 500, "y": 40},
+        {"typ": "snurra", "x": 500, "y": 220, "langd": 200, "armar": 2, "fart": 0.02},
+        {"typ": "korg", "x": 500, "y": 590, "b": 120, "h": 70},
+        {"typ": "vagg", "x": 200, "y": 560, "b": 20, "h": 80},
+        {"typ": "vagg", "x": 800, "y": 560, "b": 20, "h": 80}
+      ],
+      "losning": [
+        {"typ": "planka", "x": 620, "y": 280, "vinkel": -45}
+      ]
+    },
+    {
+      "id": "hiss-och-knapp",
+      "namn": "Hiss och knapp",
+      "tips": "Hissen startar först när knappen trycks ner.",
+      "delar": {"vikt": 1, "fjader": 1, "planka": 1},
+      "stjarnor": [2, 3],
+      "foremal": [
+        {"typ": "boll", "x": 200, "y": 480},
+        {"typ": "hiss", "x": 200, "y": 520, "b": 120, "dy": -320, "tid": 3, "vantar": "h"},
+        {"typ": "vagg", "x": 120, "y": 330, "b": 20, "h": 540},
+        {"typ": "vagg", "x": 280, "y": 420, "b": 20, "h": 360},
+        {"typ": "vagg", "x": 560, "y": 300, "b": 420, "h": 24, "vinkel": 5},
+        {"typ": "korg", "x": 850, "y": 400, "b": 140, "h": 72},
+        {"typ": "vagg", "x": 990, "y": 250, "b": 20, "h": 500},
+        {"typ": "vagg", "x": 60, "y": 420, "b": 100, "h": 20},
+        {"typ": "knapp", "x": 60, "y": 410, "b": 60, "oppnar": "h"}
+      ],
+      "losning": [
+        {"typ": "vikt", "x": 60, "y": 250, "vinkel": 0},
+        {"typ": "fjader", "x": 160, "y": 200, "vinkel": -45}
+      ]
+    },
+    {
+      "id": "fabriken",
+      "namn": "Fabriken",
+      "tips": "Sista provet. Titta noga åt vilket håll banden går.",
+      "delar": {"band": 2, "planka": 1, "vikt": 1, "motor": 1},
+      "stjarnor": [2, 3],
+      "foremal": [
+        {"typ": "boll", "x": 850, "y": 40},
+        {"typ": "band", "x": 780, "y": 170, "b": 340},
+        {"typ": "vagg", "x": 985, "y": 120, "b": 20, "h": 200},
+        {"typ": "vagg", "x": 430, "y": 430, "b": 380, "h": 20, "vinkel": -6},
+        {"typ": "lucka", "id": "g", "x": 232, "y": 380, "b": 16, "h": 120},
+        {"typ": "korg", "x": 140, "y": 580, "b": 150, "h": 70},
+        {"typ": "vagg", "x": 10, "y": 420, "b": 20, "h": 340},
+        {"typ": "vagg", "x": 110, "y": 220, "b": 180, "h": 20},
+        {"typ": "knapp", "x": 110, "y": 210, "b": 60, "oppnar": "g"}
+      ],
+      "losning": [
+        {"typ": "vikt", "x": 110, "y": 120, "vinkel": 0},
+        {"typ": "band", "x": 760, "y": 100, "vinkel": 0, "vand": true}
+      ]
     }
   ]
 }

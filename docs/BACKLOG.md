@@ -9,7 +9,8 @@
 ## Fler delar och föremål
 - Vagn med hjul som ska över ett stup.
 - Fläkt som blåser bollen åt ett håll.
-- Knapp som öppnar en lucka när bollen rullar över den.
+- Knappar som stänger i stället för öppnar, och knappar som måste hållas nere.
+- Hiss som åker i sidled.
 - Portaler, iskanter och klister.
 
 ## Spelkänsla
@@ -19,4 +20,5 @@
 - Snäpp till rutnätet för de yngsta.
 
 ## Fler banor
-- Banor 11–30 med gungor, flera korgar och delar som måste användas i rätt ordning.
+- Banor 21–30 med flera korgar, kedjor av knappar och delar som måste användas i rätt ordning.
+- Kastaren (bana 14) är den minst förlåtande av banorna 11–20. Gör landningen bredare om barnen kör fast.
