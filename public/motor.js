@@ -72,7 +72,7 @@
     for (const o of bana.foremal) {
       if (o.typ === 'vagg') {
         const k = Bodies.rectangle(o.x, o.y, o.b, o.h, { isStatic: true, friction: 0.05, frictionStatic: 0.05, angle: rad(o.vinkel) });
-        k.rv = { roll: 'vagg' };
+        k.rv = { roll: 'vagg', nr: ut.length };
         ut.push(k);
       } else if (o.typ === 'boll') {
         const k = Bodies.circle(o.x, o.y, o.r || 18, { restitution: 0.25, friction: 0, frictionStatic: 0, frictionAir: 0.002, density: 0.004 });

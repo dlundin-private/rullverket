@@ -39,7 +39,7 @@
     --sten: #8fa1b8; --tra: #d69a4b; --tra-kant: #f0c78c; --fjader: #ff6b6f;
     --vikt: #9a88e0; --boll: #f7c948; --boll-kant: #ffe08a; --korg: #3fc187;
     --gunga: #55c0c7; --stjarna-tom: #34495d; --knapp-skugga: #a07608;
-    --band: #0b1520; --band-ljus: #7f93aa; --motor: #ff9d45; --knapp-farg: #ff6b6f; --lucka: #e0a24e;
+    --band: #3a4d63; --band-ljus: #b4c6da; --motor: #ff9d45; --knapp-farg: #ff6b6f; --lucka: #e0a24e;
     color-scheme: dark;
   }
 }
@@ -49,7 +49,7 @@
   --sten: #8fa1b8; --tra: #d69a4b; --tra-kant: #f0c78c; --fjader: #ff6b6f;
   --vikt: #9a88e0; --boll: #f7c948; --boll-kant: #ffe08a; --korg: #3fc187;
   --gunga: #55c0c7; --stjarna-tom: #34495d; --knapp-skugga: #a07608;
-  --band: #0b1520; --band-ljus: #7f93aa; --motor: #ff9d45; --knapp-farg: #ff6b6f; --lucka: #e0a24e;
+  --band: #3a4d63; --band-ljus: #b4c6da; --motor: #ff9d45; --knapp-farg: #ff6b6f; --lucka: #e0a24e;
   color-scheme: dark;
 }
 html { scroll-padding-top: env(safe-area-inset-top, 0px); }
@@ -203,3 +203,63 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--boll); outl
   .knapp.stor { font-size: 17px; padding: 9px 18px; }
   .del svg { width: 36px; height: 24px; }
 }
+
+/* ---------- Teman ----------
+   Teman byter bara utseende. Fysiken och banorna är desamma.
+   --himmel är bakgrundens överkant, --papper underkant, --dekor-1..3 kulissernas färger. */
+:root { --himmel: var(--papper); --sten-2: var(--sten); --dekor-1: transparent; --dekor-2: transparent; --dekor-3: transparent; --boll-2: var(--boll-kant); }
+
+:root[data-tema="djungel"] {
+  --bg: #1d5236; --himmel: #e3f4d9; --papper: #c8e6b8; --rutnat: rgba(40, 90, 50, .12);
+  --sten: #6b4a2f; --sten-2: #6cab3f; --tra: #d8c06a; --tra-kant: #8a7428;
+  --boll: #ff9f1c; --boll-kant: #c46a00; --boll-2: #c46a00; --korg: #a8692e; --gunga: #8a5a2b;
+  --dekor-1: #9fd18a; --dekor-2: #5f9e55; --dekor-3: #3f7a3a; --lucka: #b35c2e;
+}
+:root[data-tema="oken"] {
+  --bg: #a8612e; --himmel: #fff1d6; --papper: #f8d9a6; --rutnat: rgba(140, 90, 30, .12);
+  --sten: #b87443; --sten-2: #d9965e; --tra: #c9a77a; --tra-kant: #7d5b33;
+  --boll: #1fb5a8; --boll-kant: #0d7a71; --boll-2: #0d7a71; --korg: #b4492f; --gunga: #8c5a3c;
+  --dekor-1: #f3cb8c; --dekor-2: #e2ad68; --dekor-3: #ffc94d; --lucka: #8f5ab8;
+}
+:root[data-tema="lekplats"] {
+  --bg: #3c8fd0; --himmel: #dff2ff; --papper: #f7fbff; --rutnat: rgba(60, 120, 180, .1);
+  --sten: #ef5b5b; --sten-2: #3d7be8; --tra: #ffd23f; --tra-kant: #c99a00;
+  --boll: #ffffff; --boll-kant: #e5484d; --boll-2: #3d7be8; --korg: #3d7be8; --gunga: #2fb36d;
+  --dekor-1: #9be08a; --dekor-2: #ffffff; --dekor-3: #9bb8cf; --lucka: #8e6cd8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-tema="djungel"]:not([data-theme="light"]) {
+    --bg: #0c2617; --himmel: #0f2a1d; --papper: #183a26; --rutnat: rgba(160, 220, 160, .07);
+    --sten: #a07850; --sten-2: #5f9e3f; --dekor-1: #1f4a2c; --dekor-2: #275a35; --dekor-3: #2f6b3c;
+  }
+  :root[data-tema="oken"]:not([data-theme="light"]) {
+    --bg: #2a1a2e; --himmel: #1a1f3d; --papper: #4a3550; --rutnat: rgba(255, 220, 180, .07);
+    --sten: #c98a58; --sten-2: #e0a571; --dekor-1: #5a4058; --dekor-2: #6b4a5c; --dekor-3: #f3ead0;
+  }
+  :root[data-tema="lekplats"]:not([data-theme="light"]) {
+    --bg: #152c4a; --himmel: #1b2f52; --papper: #2b4a6e; --rutnat: rgba(200, 230, 255, .07);
+    --dekor-1: #2f5a46; --dekor-2: #50688a; --dekor-3: #4a6385; --boll: #f2f2f2;
+  }
+}
+:root[data-theme="dark"][data-tema="djungel"] {
+  --bg: #0c2617; --himmel: #0f2a1d; --papper: #183a26; --rutnat: rgba(160, 220, 160, .07);
+  --sten: #a07850; --sten-2: #5f9e3f; --dekor-1: #1f4a2c; --dekor-2: #275a35; --dekor-3: #2f6b3c;
+}
+:root[data-theme="dark"][data-tema="oken"] {
+  --bg: #2a1a2e; --himmel: #1a1f3d; --papper: #4a3550; --rutnat: rgba(255, 220, 180, .07);
+  --sten: #c98a58; --sten-2: #e0a571; --dekor-1: #5a4058; --dekor-2: #6b4a5c; --dekor-3: #f3ead0;
+}
+:root[data-theme="dark"][data-tema="lekplats"] {
+  --bg: #152c4a; --himmel: #1b2f52; --papper: #2b4a6e; --rutnat: rgba(200, 230, 255, .07);
+  --dekor-1: #2f5a46; --dekor-2: #50688a; --dekor-3: #4a6385; --boll: #f2f2f2;
+}
+
+.teman { display: flex; gap: 8px; flex-wrap: wrap; max-width: 900px; margin: -4px auto 16px; }
+.tema {
+  border: 0; border-radius: 999px; padding: 6px 14px 6px 6px; cursor: pointer;
+  display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 16px;
+  background: rgba(255, 255, 255, .16); color: var(--bg-text);
+}
+.tema[aria-pressed="true"] { background: var(--yta); color: var(--text); box-shadow: 0 3px 0 rgba(0,0,0,.2); }
+.tema .prov { width: 28px; height: 28px; border-radius: 50%; flex: none; border: 2px solid rgba(255,255,255,.7); }

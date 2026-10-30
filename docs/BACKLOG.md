@@ -22,3 +22,8 @@
 ## Fler banor
 - Banor 21–30 med flera korgar, kedjor av knappar och delar som måste användas i rätt ordning.
 - Kastaren (bana 14) är den minst förlåtande av banorna 11–20. Gör landningen bredare om barnen kör fast.
+
+## Teman
+- Fler teman: rymden, under vattnet, vinter.
+- Ljud som byter med temat.
+- Låsa upp teman med stjärnor, utan köp.

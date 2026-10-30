@@ -68,3 +68,10 @@ Om band och motorhjul: de drar bollens fart mot ytans fart vid kontakt (se `band
 2. Rita den i `ritaKropp` och ge den en ikon i `delIkon` i `spel.js`.
 3. Om den har en riktning: sätt `vandbar: true` i `DELAR`, så visas ⇄ i verktygsraden.
 4. Lägg till den i en banas `delar` och skriv ett test.
+
+## Teman
+Spelaren väljer tema på bankartan: Verkstad (standard), Djungel, Öken eller Lekplats. Valet sparas per spelare (`tema` i profilen) och gäller alla banor. Teman ändrar bara utseendet, aldrig fysiken.
+- Färgerna är CSS-variabler under `:root[data-tema="..."]` i `style.css`, med nattvarianter för mörkt läge. `--himmel` och `--papper` är bakgrundens övre och nedre färg, `--dekor-1..3` är kulissernas färger och `--sten-2` är väggarnas detaljfärg (mossa eller sandränder).
+- I `spel.js` ritar `ritaKulisser()` bakgrunden, `ritaVagg()` väggarnas material och `ritaBoll()` bollen för varje tema. Lekplatsens väggar får färg efter `rv.nr`, väggens ordning i banan, så att färgen är densamma före och under körning.
+- Kulisserna ska vara svaga (låg opacitet) så att banans delar alltid syns tydligt.
+- Nytt tema: lägg till ett block i `style.css`, en rad i `TEMAN` i `spel.js` och vid behov en gren i de tre ritfunktionerna.

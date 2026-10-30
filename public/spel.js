@@ -59,7 +59,7 @@
       bort.onclick = () => {
         if (!confirm('Ta bort ' + s.namn + ' och alla stjärnor?')) return;
         data.spelare = data.spelare.filter((x) => x !== s);
-        if (data.aktiv === s.id) data.aktiv = null;
+        if (data.aktiv === s.id) { data.aktiv = null; sattTema('verkstad'); }
         spara(); visaProfiler();
       };
       rad.append(k, bort);
@@ -82,6 +82,42 @@
   $('#lagg-till').onclick = laggTill;
   $('#nytt-namn').addEventListener('keydown', (e) => { if (e.key === 'Enter') laggTill(); });
 
+  /* ---------- Teman ---------- */
+  const TEMAN = [
+    { id: 'verkstad', namn: 'Verkstad', prov: '#2b5f8a' },
+    { id: 'djungel', namn: 'Djungel', prov: '#3f7a3a' },
+    { id: 'oken', namn: 'Öken', prov: '#e2ad68' },
+    { id: 'lekplats', namn: 'Lekplats', prov: '#ef5b5b' }
+  ];
+  let tema = 'verkstad';
+  function sattTema(id) {
+    tema = TEMAN.some((t) => t.id === id) ? id : 'verkstad';
+    if (tema === 'verkstad') document.documentElement.removeAttribute('data-tema');
+    else document.documentElement.setAttribute('data-tema', tema);
+    const m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.content = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+    lasFarger();
+  }
+  function ritaTemaval() {
+    const rad = $('#teman');
+    rad.innerHTML = '';
+    for (const t of TEMAN) {
+      const k = document.createElement('button');
+      k.className = 'tema';
+      k.setAttribute('aria-pressed', String(t.id === tema));
+      k.innerHTML = '<span class="prov"></span><span></span>';
+      k.querySelector('.prov').style.background = t.prov;
+      k.lastChild.textContent = t.namn;
+      k.onclick = () => {
+        const s = aktiv();
+        if (s) { s.tema = t.id; spara(); }
+        sattTema(t.id);
+        ritaTemaval();
+      };
+      rad.append(k);
+    }
+  }
+
   /* ---------- Bankarta ---------- */
   function upplast(i) {
     if (i === 0) return true;
@@ -94,6 +130,8 @@
   function visaKarta() {
     const s = aktiv();
     if (!s) return visaProfiler();
+    sattTema(s.tema);
+    ritaTemaval();
     $('#halsning').textContent = 'Hej ' + s.namn + '!';
     $('#total').textContent = '★ ' + stjarnSumma(s) + ' av ' + banor.length * 3;
     const grid = $('#bangrid');
@@ -395,9 +433,10 @@
   /* ---------- Ritning ---------- */
   let farg = {};
   let klocka = 0;
+  const LEK_FARGER = ['#ef5b5b', '#3d7be8', '#2fb36d', '#8e6cd8'];
   function lasFarger() {
     const cs = getComputedStyle(document.documentElement);
-    for (const n of ['papper', 'rutnat', 'sten', 'tra', 'tra-kant', 'fjader', 'vikt', 'boll', 'boll-kant', 'korg', 'gunga', 'fel', 'band', 'band-ljus', 'motor', 'knapp-farg', 'lucka'])
+    for (const n of ['papper', 'rutnat', 'sten', 'tra', 'tra-kant', 'fjader', 'vikt', 'boll', 'boll-kant', 'korg', 'gunga', 'fel', 'band', 'band-ljus', 'motor', 'knapp-farg', 'lucka', 'himmel', 'sten-2', 'dekor-1', 'dekor-2', 'dekor-3', 'boll-2'])
       farg[n] = cs.getPropertyValue('--' + n).trim();
   }
   lasFarger();
@@ -418,12 +457,7 @@
       const r = k.circleRadius;
       ctx.save();
       ctx.translate(k.position.x, k.position.y);
-      ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.fillStyle = farg.boll; ctx.fill();
-      ctx.lineWidth = 3; ctx.strokeStyle = farg['boll-kant']; ctx.stroke();
-      ctx.rotate(k.position.x / r);
-      ctx.beginPath(); ctx.moveTo(-r + 4, 0); ctx.lineTo(r - 4, 0);
-      ctx.lineWidth = 3; ctx.stroke();
+      ritaBoll(r, k.position.x / r);
       ctx.restore();
       return;
     }
@@ -536,13 +570,165 @@
       vagPath(k.vertices);
       ctx.fillStyle = farg.korg; ctx.fill();
     } else {
-      vagPath(k.vertices);
-      ctx.fillStyle = farg.sten; ctx.fill();
+      ritaVagg(k);
     }
     if (markering) {
       vagPath(k.parts.length > 1 ? k.parts[0].vertices : k.vertices);
       ctx.lineWidth = 4; ctx.strokeStyle = markering; ctx.setLineDash([8, 6]); ctx.stroke(); ctx.setLineDash([]);
     }
+  }
+
+
+  /* Väggar: samma form i alla teman men olika material */
+  function ritaVagg(k) {
+    const v = k.vertices;
+    vagPath(v);
+    if (tema === 'lekplats') {
+      const nr = k.rv && k.rv.nr !== undefined ? k.rv.nr : 0;
+      ctx.fillStyle = LEK_FARGER[nr % LEK_FARGER.length]; ctx.fill();
+      ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.stroke();
+      return;
+    }
+    ctx.fillStyle = farg.sten; ctx.fill();
+    if (v.length !== 4) return;
+    // längsta sidan som ligger överst får mossa, sandränder eller ingenting
+    const l01 = Math.hypot(v[1].x - v[0].x, v[1].y - v[0].y);
+    const l12 = Math.hypot(v[2].x - v[1].x, v[2].y - v[1].y);
+    const [a, b, c, d] = l01 >= l12 ? [v[0], v[1], v[2], v[3]] : [v[1], v[2], v[3], v[0]];
+    // den sida som ligger högst upp (lägst y i mitten) är ovansidan
+    let ovre = [v[0], v[1]];
+    for (let i = 0; i < 4; i++) {
+      const p = v[i], q = v[(i + 1) % 4];
+      if ((p.y + q.y) / 2 < (ovre[0].y + ovre[1].y) / 2) ovre = [p, q];
+    }
+    if (tema === 'djungel') {
+      ctx.beginPath(); ctx.moveTo(ovre[0].x, ovre[0].y); ctx.lineTo(ovre[1].x, ovre[1].y);
+      ctx.strokeStyle = farg['sten-2']; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.stroke();
+      // små blad längs mossan
+      const n = Math.floor(Math.hypot(ovre[1].x - ovre[0].x, ovre[1].y - ovre[0].y) / 40);
+      ctx.fillStyle = farg['sten-2'];
+      for (let i = 1; i <= n; i++) {
+        const t = i / (n + 1);
+        const x = ovre[0].x + (ovre[1].x - ovre[0].x) * t, y = ovre[0].y + (ovre[1].y - ovre[0].y) * t;
+        ctx.beginPath(); ctx.ellipse(x, y + 5, 4, 8, i % 2 ? 0.5 : -0.5, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.lineCap = 'butt';
+    } else if (tema === 'oken') {
+      ctx.save(); vagPath(v); ctx.clip();
+      const mx = (a.x + b.x + c.x + d.x) / 4, my = (a.y + b.y + c.y + d.y) / 4;
+      const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy);
+      ctx.beginPath();
+      for (const f of [-0.22, 0.22]) {
+        const nx = -dy / len * 40 * f, ny = dx / len * 40 * f;
+        ctx.moveTo(mx - dx + nx, my - dy + ny); ctx.lineTo(mx + dx + nx, my + dy + ny);
+      }
+      ctx.strokeStyle = farg['sten-2']; ctx.lineWidth = 3; ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  /* Bollen: ser olika ut i varje tema */
+  function ritaBoll(r, vrid) {
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fillStyle = farg.boll; ctx.fill();
+    ctx.save();
+    ctx.rotate(vrid);
+    if (tema === 'lekplats') {
+      ctx.clip();
+      for (const [a, f] of [[0, farg['boll-kant']], [2.094, farg['boll-2']], [4.189, '#ffd23f']]) {
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, r, a, a + 1.047); ctx.closePath();
+        ctx.fillStyle = f; ctx.fill();
+      }
+    } else if (tema === 'djungel') {
+      ctx.beginPath(); ctx.ellipse(0, -r * 0.35, r * 0.55, r * 0.22, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fill();
+      ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(3, -r - 7);
+      ctx.strokeStyle = '#3f7a3a'; ctx.lineWidth = 3; ctx.stroke();
+    } else if (tema === 'oken') {
+      ctx.beginPath(); ctx.arc(0, 0, r * 0.55, 0, Math.PI * 2);
+      ctx.strokeStyle = farg['boll-kant']; ctx.lineWidth = 2.5; ctx.stroke();
+    } else {
+      ctx.beginPath(); ctx.moveTo(-r + 4, 0); ctx.lineTo(r - 4, 0);
+      ctx.strokeStyle = farg['boll-kant']; ctx.lineWidth = 3; ctx.stroke();
+    }
+    ctx.restore();
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.lineWidth = 3; ctx.strokeStyle = farg['boll-kant']; ctx.stroke();
+  }
+
+  /* Kulisser bakom banan. Svaga färger så att banans delar syns tydligt. */
+  function kulle(y0, amp, vag, fas) {
+    ctx.beginPath(); ctx.moveTo(0, VARLD.h);
+    for (let x = 0; x <= VARLD.b; x += 20) ctx.lineTo(x, y0 + Math.sin(x / vag + fas) * amp);
+    ctx.lineTo(VARLD.b, VARLD.h); ctx.closePath();
+  }
+  function ritaKulisser() {
+    const g = ctx.createLinearGradient(0, 0, 0, VARLD.h);
+    g.addColorStop(0, farg.himmel); g.addColorStop(1, farg.papper);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, VARLD.b, VARLD.h);
+    if (tema === 'verkstad') return;
+    ctx.save();
+    ctx.globalAlpha = 0.55;
+    if (tema === 'djungel') {
+      ctx.fillStyle = farg['dekor-1']; kulle(470, 26, 70, 0.5); ctx.fill();
+      ctx.fillStyle = farg['dekor-2']; kulle(530, 20, 55, 2); ctx.fill();
+      // stora blad i hörnen
+      ctx.fillStyle = farg['dekor-3'];
+      for (const [x, y, rot, s] of [[20, 20, 0.6, 1], [90, -10, 1.2, 0.8], [980, 30, -0.7, 1], [910, -15, -1.3, 0.8]]) {
+        ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.scale(s, s);
+        ctx.beginPath(); ctx.ellipse(0, 50, 26, 70, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+      // lianer
+      ctx.strokeStyle = farg['dekor-3']; ctx.lineWidth = 3;
+      for (const [x, l] of [[300, 150], [560, 100], [720, 180]]) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.quadraticCurveTo(x + 30, l / 2, x - 5, l); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(x - 5, l + 8, 6, 11, 0.3, 0, Math.PI * 2); ctx.fillStyle = farg['dekor-3']; ctx.fill();
+      }
+    } else if (tema === 'oken') {
+      ctx.globalAlpha = 0.8;
+      ctx.beginPath(); ctx.arc(930, 62, 34, 0, Math.PI * 2); ctx.fillStyle = farg['dekor-3']; ctx.fill();
+      ctx.globalAlpha = 0.55;
+      ctx.fillStyle = farg['dekor-1']; kulle(460, 30, 120, 1); ctx.fill();
+      ctx.fillStyle = farg['dekor-2']; kulle(530, 22, 90, 3); ctx.fill();
+      // kaktusar
+      ctx.fillStyle = farg['dekor-2'];
+      for (const [x, y, s] of [[140, 455, 1], [640, 470, 0.8], [900, 520, 0.7]]) {
+        ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+        ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-9, -70, 18, 80, 9) : ctx.rect(-9, -70, 18, 80); ctx.fill();
+        ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-30, -45, 12, 34, 6) : ctx.rect(-30, -45, 12, 34); ctx.fill();
+        ctx.fillRect(-26, -18, 20, 10);
+        ctx.beginPath(); ctx.roundRect ? ctx.roundRect(18, -55, 12, 30, 6) : ctx.rect(18, -55, 12, 30); ctx.fill();
+        ctx.fillRect(6, -32, 20, 10);
+        ctx.restore();
+      }
+    } else if (tema === 'lekplats') {
+      // moln
+      ctx.fillStyle = farg['dekor-2']; ctx.globalAlpha = 0.85;
+      for (const [x, y, s] of [[180, 80, 1], [560, 50, 0.8], [830, 110, 1.1]]) {
+        ctx.beginPath();
+        ctx.arc(x, y, 26 * s, 0, Math.PI * 2); ctx.arc(x + 30 * s, y - 10 * s, 30 * s, 0, Math.PI * 2);
+        ctx.arc(x + 62 * s, y, 24 * s, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = farg['dekor-1']; kulle(560, 8, 90, 0); ctx.fill();
+      // gungställning
+      ctx.strokeStyle = farg['dekor-3']; ctx.lineWidth = 6; ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(700, 560); ctx.lineTo(730, 420); ctx.lineTo(760, 560);
+      ctx.moveTo(860, 560); ctx.lineTo(890, 420); ctx.lineTo(920, 560);
+      ctx.moveTo(730, 420); ctx.lineTo(890, 420);
+      ctx.stroke();
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(790, 420); ctx.lineTo(790, 510); ctx.moveTo(830, 420); ctx.lineTo(830, 510); ctx.stroke();
+      ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(784, 512); ctx.lineTo(836, 512); ctx.stroke();
+      // träd
+      ctx.fillStyle = farg['dekor-3']; ctx.fillRect(92, 470, 14, 90);
+      ctx.fillStyle = farg['dekor-1']; ctx.globalAlpha = 0.7;
+      ctx.beginPath(); ctx.arc(99, 450, 46, 0, Math.PI * 2); ctx.arc(70, 480, 30, 0, Math.PI * 2); ctx.arc(130, 478, 32, 0, Math.PI * 2); ctx.fill();
+      ctx.lineCap = 'butt';
+    }
+    ctx.restore();
   }
 
   function rita() {
@@ -551,9 +737,9 @@
     ctx.translate(ox, oy);
     ctx.scale(skala, skala);
     // papper med rutnät
-    ctx.fillStyle = farg.papper;
-    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(0, 0, VARLD.b, VARLD.h, 14) : ctx.rect(0, 0, VARLD.b, VARLD.h); ctx.fill();
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(0, 0, VARLD.b, VARLD.h, 14) : ctx.rect(0, 0, VARLD.b, VARLD.h);
     ctx.save(); ctx.clip();
+    ritaKulisser();
     ctx.strokeStyle = farg.rutnat; ctx.lineWidth = 1.5;
     ctx.beginPath();
     for (let x = 50; x < VARLD.b; x += 50) { ctx.moveTo(x, 0); ctx.lineTo(x, VARLD.h); }
@@ -611,6 +797,7 @@
   /* ---------- Start ---------- */
   laddaBanor().then((b) => {
     banor = b;
+    if (aktiv()) sattTema(aktiv().tema);
     if (aktiv()) visaKarta(); else visaProfiler();
     requestAnimationFrame(slinga);
   }).catch(() => {
