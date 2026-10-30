@@ -1,0 +1,198 @@
+:root {
+  --bg: #2b5f8a;
+  --bg-text: #ffffff;
+  --yta: #f3f7fa;
+  --yta-2: #e2ecf3;
+  --text: #17324a;
+  --text-svag: #4f6a80;
+  --papper: #e8f1f6;
+  --rutnat: #d3e2ec;
+  --sten: #445468;
+  --tra: #e3a857;
+  --tra-kant: #a46d2b;
+  --fjader: #e5484d;
+  --vikt: #6d5bb0;
+  --boll: #f5c02e;
+  --boll-kant: #b98a00;
+  --korg: #2e9e6a;
+  --gunga: #3f9fa6;
+  --fel: #e5484d;
+  --knapp: #f5c02e;
+  --knapp-text: #3a2a00;
+  --knapp-skugga: #c8960f;
+  --stjarna: #f5b301;
+  --stjarna-tom: #c9d6e0;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f2233; --bg-text: #e6eef5; --yta: #1a2c3d; --yta-2: #233a50;
+    --text: #e6eef5; --text-svag: #9fb3c5; --papper: #15283a; --rutnat: #1f3549;
+    --sten: #8fa1b8; --tra: #d69a4b; --tra-kant: #f0c78c; --fjader: #ff6b6f;
+    --vikt: #9a88e0; --boll: #f7c948; --boll-kant: #ffe08a; --korg: #3fc187;
+    --gunga: #55c0c7; --stjarna-tom: #34495d; --knapp-skugga: #a07608;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f2233; --bg-text: #e6eef5; --yta: #1a2c3d; --yta-2: #233a50;
+  --text: #e6eef5; --text-svag: #9fb3c5; --papper: #15283a; --rutnat: #1f3549;
+  --sten: #8fa1b8; --tra: #d69a4b; --tra-kant: #f0c78c; --fjader: #ff6b6f;
+  --vikt: #9a88e0; --boll: #f7c948; --boll-kant: #ffe08a; --korg: #3fc187;
+  --gunga: #55c0c7; --stjarna-tom: #34495d; --knapp-skugga: #a07608;
+  color-scheme: dark;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg); color: var(--bg-text);
+  font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Varela Round", system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+* { box-sizing: border-box; }
+button, input { font: inherit; }
+[hidden] { display: none !important; }
+
+.skarm { height: 100%; }
+
+/* Knappar */
+.knapp {
+  border: 0; border-radius: 14px; padding: 10px 18px; cursor: pointer;
+  background: var(--knapp); color: var(--knapp-text); font-weight: 800; font-size: 17px;
+  box-shadow: 0 4px 0 var(--knapp-skugga); touch-action: manipulation;
+}
+.knapp:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--knapp-skugga); }
+.knapp.tyst { background: var(--yta-2); color: var(--text); box-shadow: 0 4px 0 rgba(0,0,0,.15); }
+.knapp.stor { font-size: 20px; padding: 12px 26px; }
+.knapp.ikon { width: 46px; height: 46px; padding: 0; font-size: 22px; }
+.knapp:disabled { opacity: .45; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--boll); outline-offset: 2px; }
+
+/* Profiler */
+#profiler { overflow-y: auto; display: grid; place-items: center; padding: 24px 16px; }
+.profil-inre { width: min(440px, 100%); }
+.logga {
+  font-size: clamp(44px, 12vw, 68px); font-weight: 900; margin: 0; letter-spacing: -1px;
+  display: flex; align-items: center; gap: 12px; line-height: 1;
+}
+.logga-boll {
+  width: .62em; height: .62em; border-radius: 50%; background: var(--boll);
+  box-shadow: inset -6px -6px 0 rgba(0,0,0,.12); flex: none;
+  animation: rulla 1.6s cubic-bezier(.3,.7,.4,1) both;
+}
+@keyframes rulla { from { transform: translateX(-60vw) rotate(-540deg); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .logga-boll { animation: none; } }
+.ingress { font-size: 18px; margin: 10px 0 28px; opacity: .85; }
+.rubrik { font-size: 22px; margin: 0 0 12px; }
+.spelarlista { display: grid; gap: 10px; margin-bottom: 16px; }
+.spelare {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px;
+  background: var(--yta); color: var(--text); border: 0; text-align: left; cursor: pointer;
+  font-size: 20px; font-weight: 800; width: 100%;
+}
+.spelare .prick { width: 26px; height: 26px; border-radius: 50%; flex: none; }
+.spelare .namn { flex: 1; }
+.spelare .sum { font-size: 16px; color: var(--text-svag); font-weight: 700; }
+.spelare-rad { display: flex; gap: 8px; align-items: stretch; }
+.spelare-rad .ta-bort {
+  border: 0; border-radius: 14px; background: transparent; color: var(--bg-text); opacity: .6;
+  font-size: 18px; width: 40px; cursor: pointer;
+}
+.ny-spelare { display: flex; gap: 8px; }
+.ny-spelare input {
+  flex: 1; min-width: 0; border: 0; border-radius: 14px; padding: 10px 14px; font-size: 18px;
+  background: var(--yta); color: var(--text);
+}
+
+/* Bankarta */
+#karta { overflow-y: auto; padding: 14px 16px 24px; }
+.kartrad { display: flex; align-items: center; gap: 12px; max-width: 900px; margin: 0 auto 16px; }
+.kartrad h2 { flex: 1; margin: 0; font-size: 24px; }
+.total { font-weight: 800; font-size: 18px; white-space: nowrap; }
+.bangrid {
+  display: grid; gap: 12px; max-width: 900px; margin: 0 auto;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+.banruta {
+  border: 0; border-radius: 18px; padding: 14px 12px 12px; background: var(--yta); color: var(--text);
+  text-align: left; cursor: pointer; display: grid; gap: 6px; min-height: 112px;
+  box-shadow: 0 4px 0 rgba(0,0,0,.18);
+}
+.banruta .nr { font-size: 30px; font-weight: 900; line-height: 1; }
+.banruta .namn { font-size: 16px; font-weight: 800; }
+.banruta.last { opacity: .5; cursor: default; }
+.stjarnor { font-size: 20px; letter-spacing: 2px; color: var(--stjarna-tom); }
+.stjarnor .full { color: var(--stjarna); }
+
+/* Spelskärm */
+#spel { display: flex; flex-direction: column; position: relative; }
+.spelrad { display: flex; align-items: center; gap: 10px; padding: 8px 10px 6px; }
+.titel { flex: 1; min-width: 0; }
+.titel h2 { margin: 0; font-size: 20px; line-height: 1.15; }
+.titel p { margin: 2px 0 0; font-size: 15px; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stjarnmal { font-size: 14px; text-align: right; line-height: 1.35; white-space: nowrap; opacity: .9; }
+.stjarnmal b { color: var(--stjarna); }
+.scen { flex: 1; position: relative; min-height: 0; }
+#duk { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; }
+.verktygsrad {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px 10px;
+}
+.lada { flex: 1; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.del {
+  flex: none; border: 0; border-radius: 14px; background: var(--yta); color: var(--text);
+  display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; cursor: grab;
+  font-weight: 800; font-size: 15px; touch-action: none; box-shadow: 0 4px 0 rgba(0,0,0,.18);
+}
+.del svg { width: 44px; height: 30px; flex: none; }
+.del .antal { font-size: 18px; min-width: 1.5em; }
+.del:disabled { opacity: .4; cursor: default; }
+.styr { display: flex; gap: 8px; align-items: center; }
+.delverktyg {
+  position: absolute; display: flex; gap: 6px; transform: translate(-50%, -100%);
+  background: var(--yta); padding: 5px; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.25);
+}
+.delverktyg button {
+  width: 42px; height: 42px; border: 0; border-radius: 10px; background: var(--yta-2); color: var(--text);
+  font-size: 22px; cursor: pointer; touch-action: manipulation;
+}
+.delverktyg [data-ta-bort] { color: var(--fel); }
+.meddelande {
+  position: absolute; left: 50%; top: 12px; transform: translateX(-50%); display: flex; gap: 12px; align-items: center;
+  background: var(--yta); color: var(--text); padding: 8px 8px 8px 16px; border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.25); max-width: calc(100% - 20px);
+}
+.meddelande p { margin: 0; font-weight: 700; }
+.vand { position: absolute; bottom: 6px; left: 0; right: 0; text-align: center; margin: 0; font-size: 14px; opacity: .8; pointer-events: none; }
+
+/* Resultat */
+.overlay {
+  position: absolute; inset: 0; display: grid; place-items: center; padding: 16px;
+  background: rgba(10, 30, 50, .45);
+}
+.kort {
+  background: var(--yta); color: var(--text); border-radius: 24px; padding: 22px 22px 20px;
+  width: min(380px, 100%); text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,.3);
+}
+.kort h2 { margin: 6px 0 4px; font-size: 30px; }
+.kort p { margin: 0 0 16px; color: var(--text-svag); font-size: 17px; }
+.kort-knappar { display: grid; gap: 10px; }
+.res-stjarnor { font-size: 52px; letter-spacing: 6px; color: var(--stjarna-tom); line-height: 1; }
+.res-stjarnor span { display: inline-block; }
+.res-stjarnor .full { color: var(--stjarna); animation: poff .45s cubic-bezier(.3,1.6,.5,1) both; }
+.res-stjarnor .full:nth-child(2) { animation-delay: .25s; }
+.res-stjarnor .full:nth-child(3) { animation-delay: .5s; }
+@keyframes poff { from { transform: scale(0) rotate(-40deg); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .res-stjarnor .full { animation: none; } }
+
+@media (max-height: 460px) {
+  .spelrad { padding: 4px 8px 2px; }
+  .titel h2 { font-size: 17px; }
+  .titel p { font-size: 13px; }
+  .verktygsrad { padding: 4px 8px 6px; }
+  .knapp.stor { font-size: 17px; padding: 9px 18px; }
+  .del svg { width: 36px; height: 24px; }
+}

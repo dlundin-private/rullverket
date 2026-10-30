@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f6f9f">
+<title>Rullverket</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="ikoner/ikon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="ikoner/ikon-180.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<section id="profiler" class="skarm">
+  <div class="profil-inre">
+    <h1 class="logga" aria-label="Rullverket"><span class="logga-boll" aria-hidden="true"></span>Rullverket</h1>
+    <p class="ingress">Bygg en väg så att bollen hamnar i korgen.</p>
+    <h2 class="rubrik">Vem spelar?</h2>
+    <div id="spelarlista" class="spelarlista"></div>
+    <div class="ny-spelare">
+      <input id="nytt-namn" type="text" maxlength="14" placeholder="Skriv ett namn" autocomplete="off" aria-label="Namn på ny spelare">
+      <button id="lagg-till" class="knapp">Lägg till</button>
+    </div>
+  </div>
+</section>
+
+<section id="karta" class="skarm" hidden>
+  <header class="kartrad">
+    <button id="byt-spelare" class="knapp tyst">Byt spelare</button>
+    <h2 id="halsning"></h2>
+    <span id="total" class="total"></span>
+  </header>
+  <div id="bangrid" class="bangrid"></div>
+</section>
+
+<section id="spel" class="skarm" hidden>
+  <header class="spelrad">
+    <button id="till-karta" class="knapp ikon tyst" aria-label="Till banorna">&#8592;</button>
+    <div class="titel">
+      <h2 id="bannamn"></h2>
+      <p id="bantips"></p>
+    </div>
+    <div id="stjarnmal" class="stjarnmal"></div>
+  </header>
+  <div id="scen" class="scen">
+    <canvas id="duk"></canvas>
+    <div id="delverktyg" class="delverktyg" hidden>
+      <button data-vrid="-15" aria-label="Vrid åt vänster">&#10226;</button>
+      <button data-vrid="15" aria-label="Vrid åt höger">&#10227;</button>
+      <button data-ta-bort aria-label="Ta bort delen">&#10005;</button>
+    </div>
+    <div id="meddelande" class="meddelande" hidden>
+      <p id="meddelande-text"></p>
+      <button id="forsok-igen" class="knapp">Försök igen</button>
+    </div>
+    <p id="vand" class="vand" hidden>Vänd skärmen för en större bana</p>
+  </div>
+  <footer class="verktygsrad">
+    <div id="lada" class="lada" aria-label="Delar"></div>
+    <div class="styr">
+      <button id="snabb" class="knapp ikon tyst" aria-label="Snabbspola" aria-pressed="false" hidden>&#9193;</button>
+      <button id="starta" class="knapp stor">Starta</button>
+    </div>
+  </footer>
+
+  <div id="resultat" class="overlay" hidden>
+    <div class="kort">
+      <div id="res-stjarnor" class="res-stjarnor" aria-live="polite"></div>
+      <h2 id="res-rubrik">Klart!</h2>
+      <p id="res-text"></p>
+      <div class="kort-knappar">
+        <button id="res-nasta" class="knapp stor">Nästa bana</button>
+        <button id="res-farre" class="knapp tyst">Försök med färre delar</button>
+        <button id="res-karta" class="knapp tyst">Alla banor</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="vendor/matter.min.js"></script>
+<script src="motor.js"></script>
+<script src="spel.js"></script>
+</body>
+</html>
