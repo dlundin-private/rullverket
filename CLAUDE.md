@@ -76,3 +76,8 @@ Spelaren väljer tema på bankartan: Verkstad (standard), Djungel, Öken eller L
 - I `spel.js` ritar `ritaKulisser()` bakgrunden, `ritaVagg()` väggarnas material och `ritaBoll()` bollen för varje tema. Lekplatsens väggar får färg efter `rv.nr`, väggens ordning i banan, så att färgen är densamma före och under körning.
 - Kulisserna ska vara svaga (låg opacitet) så att banans delar alltid syns tydligt.
 - Nytt tema: lägg till ett block i `style.css`, en rad i `TEMAN` i `spel.js` och vid behov en gren i de tre ritfunktionerna.
+
+## Publicering
+GitHub Actions (`.github/workflows/pages.yml`) kör `npm test` vid varje push till `main` och publicerar sedan mappen `public/` på GitHub Pages. Misslyckas en bana publiceras ingenting. Adressen är https://rullverket.chandler.se (filen `public/CNAME`, DNS-posten pekar på `dlundin-private.github.io`). I repots inställningar ska Pages ha källan "GitHub Actions".
+
+Sparningen i `localStorage` hör ihop med domänen. Byt inte domän, då börjar alla spelare om från noll.
