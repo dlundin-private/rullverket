@@ -2,7 +2,7 @@
   "name": "Rullverket",
   "short_name": "Rullverket",
   "lang": "sv",
-  "start_url": "./",
+  "start_url": "index.html",
   "display": "standalone",
   "orientation": "landscape",
   "background_color": "#2b5f8a",
