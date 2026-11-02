@@ -1,9 +1,11 @@
 // Offline-cache. Höj VERSION vid varje ändring, annars visar installerade kopior den gamla versionen.
-const VERSION = 'rullverket-6';
+const VERSION = 'rullverket-7';
 const FILER = ['./', 'index.html', 'style.css', 'spel.js', 'motor.js', 'banor.json', 'vendor/matter.min.js',
   'manifest.webmanifest', 'ikoner/ikon.svg', 'ikoner/ikon-180.png', 'ikoner/ikon-192.png', 'ikoner/ikon-512.png'];
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FILER)).then(() => self.skipWaiting()));
+  // cache: 'reload' hämtar från servern, så att en gammal kopia i webbläsarens cache inte hamnar offline.
+  const nya = FILER.map((f) => new Request(f, { cache: 'reload' }));
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(nya)).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((k) => Promise.all(k.filter((n) => n !== VERSION).map((n) => caches.delete(n))))
