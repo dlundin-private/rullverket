@@ -163,6 +163,133 @@
     }
   }
 
+  /* ---------- Samlingen ----------
+     Kosmetiska saker som låses upp av stjärnorna. krav är antal stjärnor totalt;
+     inget förbrukas, så en upplåst sak förblir upplåst. Valen sparas per spelare i
+     s.utseende, och s.sedda håller reda på vilka upplåsta saker spelaren har sett. */
+  const SAMLING = [
+    { typ: 'boll', rubrik: 'Bollar', saker: [
+      { id: 'tema', namn: 'Temabollen', krav: 0 },
+      { id: 'fotboll', namn: 'Fotboll', krav: 3 },
+      { id: 'nyckelpiga', namn: 'Nyckelpiga', krav: 10 },
+      { id: 'planet', namn: 'Planet', krav: 20 },
+      { id: 'melon', namn: 'Vattenmelon', krav: 30 },
+      { id: 'jorden', namn: 'Jordglob', krav: 45 },
+      { id: 'glad', namn: 'Glad gubbe', krav: 60 },
+      { id: 'regnbage', namn: 'Regnbåge', krav: 80 },
+      { id: 'guld', namn: 'Guldboll', krav: 105 },
+      { id: 'disco', namn: 'Discokula', krav: 125 }
+    ] },
+    { typ: 'hatt', rubrik: 'Hattar', saker: [
+      { id: 'ingen', namn: 'Ingen hatt', krav: 0 },
+      { id: 'keps', namn: 'Keps', krav: 6 },
+      { id: 'party', namn: 'Partyhatt', krav: 15 },
+      { id: 'krona', namn: 'Krona', krav: 40 },
+      { id: 'propeller', namn: 'Propellermössa', krav: 70 },
+      { id: 'trollkarl', namn: 'Trollkarlshatt', krav: 95 }
+    ] },
+    { typ: 'spar', rubrik: 'Spår', saker: [
+      { id: 'inget', namn: 'Inget spår', krav: 0 },
+      { id: 'prickar', namn: 'Prickar', krav: 8 },
+      { id: 'bubblor', namn: 'Bubblor', krav: 25 },
+      { id: 'stjarnor', namn: 'Stjärnstoft', krav: 50 },
+      { id: 'regnbage', namn: 'Regnbågsspår', krav: 85 }
+    ] },
+    { typ: 'firande', rubrik: 'Firande', saker: [
+      { id: 'konfetti', namn: 'Konfetti', krav: 0 },
+      { id: 'ballonger', namn: 'Ballonger', krav: 35 },
+      { id: 'fyrverkeri', namn: 'Fyrverkeri', krav: 65 },
+      { id: 'stjarnregn', namn: 'Stjärnregn', krav: 115 }
+    ] }
+  ];
+  function utseende(s) {
+    const u = (s && s.utseende) || {};
+    const ut = {};
+    for (const k of SAMLING) ut[k.typ] = k.saker.some((x) => x.id === u[k.typ]) ? u[k.typ] : k.saker[0].id;
+    return ut;
+  }
+  function upplasta(s) {
+    const n = stjarnSumma(s);
+    return SAMLING.flatMap((k) => k.saker.filter((x) => x.krav > 0 && x.krav <= n).map((x) => k.typ + ':' + x.id));
+  }
+  const nyaSaker = (s) => upplasta(s).filter((x) => !(s.sedda || []).includes(x));
+  function sakNamn(nyckel) {
+    const [typ, id] = nyckel.split(':');
+    return SAMLING.find((k) => k.typ === typ).saker.find((x) => x.id === id).namn;
+  }
+
+  function ritaMiniatyr(duk2, typ, id, u) {
+    const d = window.devicePixelRatio || 1;
+    duk2.width = duk2.height = 64 * d;
+    const c = duk2.getContext('2d');
+    c.scale(d, d);
+    c.translate(32, 32);
+    if (typ === 'boll') {
+      ritaSkal(c, 19, -0.4, id);
+    } else if (typ === 'hatt') {
+      c.translate(0, 12);
+      ritaSkal(c, 15, 0, u.boll); ritaHatt(c, 15, id);
+    } else if (typ === 'spar') {
+      const pts = [];
+      for (let i = 0; i < 16; i++) { const t = i / 15; pts.push({ x: -26 + t * 40, y: 12 - Math.sin(t * Math.PI * 0.8) * 26 }); }
+      ritaSpar(c, pts, 12, id);
+      const p = pts[pts.length - 1];
+      c.translate(p.x, p.y); ritaSkal(c, 10, 0, u.boll);
+    } else {
+      // stillbild av firandet med fast slump så att den ser likadan ut varje gång
+      let fro = 3;
+      const R = () => { fro = (fro * 16807) % 2147483647; return fro / 2147483647; };
+      c.translate(-32, -32);
+      for (let i = 0; i < (id === 'ballonger' ? 3 : id === 'fyrverkeri' ? 2 : 12); i++) {
+        if (id === 'ballonger') ritaPartikel(c, { form: 'ballong', x: 14 + i * 18, y: 22 + (i % 2) * 10, s: 10, farg: FEST_FARGER[i] }, 1);
+        else if (id === 'stjarnregn') ritaPartikel(c, { form: 'stjarna', x: 6 + R() * 52, y: 6 + R() * 52, s: 4 + R() * 4, rot: R() * 6, farg: i % 3 ? '#f5b301' : '#ffd23f' }, 1);
+        else if (id === 'fyrverkeri') {
+          const cx = 22 + i * 22, cy = 24 + i * 14;
+          for (let j = 0; j < 14; j++) { const a = j / 14 * Math.PI * 2; ritaPartikel(c, { form: 'gnista', x: cx + Math.cos(a) * 14, y: cy + Math.sin(a) * 14, s: 2, farg: FEST_FARGER[i * 2 + 1] }, 1); }
+        } else ritaPartikel(c, { form: 'bit', x: 6 + R() * 52, y: 6 + R() * 52, s: 7, rot: R() * 6, farg: FEST_FARGER[i % FEST_FARGER.length] }, 1);
+      }
+    }
+  }
+
+  function visaSamling() {
+    const s = aktiv();
+    if (!s) return visaProfiler();
+    const n = stjarnSumma(s);
+    const u = utseende(s);
+    const nya = nyaSaker(s);
+    $('#samling-total').textContent = '★ ' + n;
+    const yta = $('#samlingar');
+    yta.innerHTML = '';
+    for (const k of SAMLING) {
+      const h = document.createElement('h3');
+      h.textContent = k.rubrik;
+      const grid = document.createElement('div');
+      grid.className = 'saker';
+      grid.setAttribute('role', 'group');
+      grid.setAttribute('aria-label', k.rubrik);
+      for (const x of k.saker) {
+        const oppen = x.krav <= n;
+        const b = document.createElement('button');
+        b.className = 'sak' + (oppen ? '' : ' last');
+        b.setAttribute('aria-pressed', String(u[k.typ] === x.id));
+        b.innerHTML = '<canvas aria-hidden="true"></canvas><span class="namn"></span><span class="krav"></span>';
+        b.querySelector('.namn').textContent = x.namn;
+        b.querySelector('.krav').textContent = oppen ? '' : '🔒 ★ ' + x.krav;
+        if (nya.includes(k.typ + ':' + x.id)) b.insertAdjacentHTML('beforeend', '<span class="ny">Ny!</span>');
+        b.setAttribute('aria-label', oppen ? x.namn : `${x.namn}, låst, behöver ${x.krav} stjärnor`);
+        if (oppen) b.onclick = () => { s.utseende = { ...utseende(s), [k.typ]: x.id }; spara(); visaSamling(); };
+        else b.disabled = true;
+        ritaMiniatyr(b.querySelector('canvas'), k.typ, x.id, u);
+        grid.append(b);
+      }
+      yta.append(h, grid);
+    }
+    if (nya.length) { s.sedda = upplasta(s); spara(); }
+    visa('samling');
+  }
+  $('#till-samling').onclick = visaSamling;
+  $('#fran-samling').onclick = () => visaKarta();
+
   /* ---------- Bankarta ---------- */
   function upplast(i) {
     if (i === 0) return true;
@@ -179,6 +306,10 @@
     ritaTemaval();
     $('#halsning').textContent = 'Hej ' + s.namn + '!';
     $('#total').textContent = '★ ' + stjarnSumma(s) + ' av ' + banor.length * 3;
+    const nya = nyaSaker(s).length;
+    $('#till-samling .bricka').hidden = !nya;
+    $('#till-samling .bricka').textContent = nya;
+    $('#till-samling').setAttribute('aria-label', 'Samlingen' + (nya ? `, ${nya} nya saker` : ''));
     const grid = $('#bangrid');
     grid.innerHTML = '';
     banor.forEach((b, i) => {
@@ -211,7 +342,7 @@
     const sparad = (s.layout && s.layout[bana.id]) || [];
     placerade = [];
     for (const p of sparad) if (kvar(p.typ) > 0) placerade.push({ ...p });
-    vald = -1; lage = 'bygg'; sim = null;
+    vald = -1; lage = 'bygg'; sim = null; fest = [];
     $('#bannamn').textContent = `${i + 1}. ${bana.namn}`;
     $('#bantips').textContent = bana.tips;
     const [tre, tva] = bana.stjarnor;
@@ -406,6 +537,8 @@
     s.layout[bana.id] = placerade.map((p) => ({ ...p }));
     spara();
     sim = Motor.bygg(bana, placerade);
+    sparPunkter.clear();
+    fest = [];
     lage = 'kor';
     vald = -1;
     $('#meddelande').hidden = true;
@@ -418,6 +551,7 @@
   function tillBygg() {
     lage = 'bygg';
     sim = null;
+    fest = [];
     $('#meddelande').hidden = true;
     $('#resultat').hidden = true;
     byggOm();
@@ -434,9 +568,17 @@
     }
   }
 
+  // Bollarnas senaste lägen, för spåret. Var annan bildruta, ungefär en sekund bakåt.
+  const sparPunkter = new Map();
   function steg(antal) {
     for (let i = 0; i < antal && lage === 'kor'; i++) {
       const r = sim.steg();
+      if (sim.ruta % 2 === 0) for (const b of sim.bollar) {
+        const p = sparPunkter.get(b.id) || [];
+        p.push({ x: b.position.x, y: b.position.y });
+        if (p.length > 30) p.shift();
+        sparPunkter.set(b.id, p);
+      }
       if (r.status === 'vann') return vinst();
       if (r.status === 'miste') {
         lage = 'miste';
@@ -455,8 +597,13 @@
     const n = Motor.stjarnor(bana, placerade.length);
     const s = aktiv();
     const fore = s.stjarnor[bana.id] || 0;
+    const hadeForut = upplasta(s);
     s.stjarnor[bana.id] = Math.max(fore, n);
     spara();
+    startaFest(utseende(s).firande);
+    const nytt = upplasta(s).filter((x) => !hadeForut.includes(x)).map(sakNamn);
+    $('#res-nytt').hidden = !nytt.length;
+    $('#res-nytt').textContent = nytt.length ? '🎁 Nytt i samlingen: ' + nytt.join(', ').replace(/, ([^,]*)$/, ' och $1') + '!' : '';
     $('#res-stjarnor').innerHTML = stjarnHtml(n);
     $('#res-stjarnor').setAttribute('aria-label', `${n} av 3 stjärnor`);
     $('#res-rubrik').textContent = n === 3 ? 'Perfekt!' : n > fore && fore ? 'Nytt rekord!' : 'Klart!';
@@ -466,6 +613,7 @@
     $('#res-farre').hidden = n === 3;
     const sist = banIndex >= banor.length - 1;
     $('#res-nasta').textContent = sist ? 'Alla banor' : 'Nästa bana';
+    $('#res-karta').hidden = sist;
     $('#resultat').hidden = false;
     $('#res-nasta').focus();
     uppdateraKnappar();
@@ -500,9 +648,11 @@
     ctx.lineJoin = 'round';
     if (roll === 'boll') {
       const r = k.circleRadius;
+      const u = utseende(aktiv());
       ctx.save();
       ctx.translate(k.position.x, k.position.y);
-      ritaBoll(r, k.position.x / r);
+      ritaSkal(ctx, r, k.position.x / r, u.boll);
+      ritaHatt(ctx, r, u.hatt);
       ctx.restore();
       return;
     }
@@ -672,33 +822,299 @@
     }
   }
 
-  /* Bollen: ser olika ut i varje tema */
-  function ritaBoll(r, vrid) {
-    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2);
-    ctx.fillStyle = farg.boll; ctx.fill();
-    ctx.save();
-    ctx.rotate(vrid);
+  /* Temabollen: ser olika ut i varje tema. c är ritytan, origo i bollens mitt. */
+  function ritaTemaboll(c, r, vrid) {
+    c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2);
+    c.fillStyle = farg.boll; c.fill();
+    c.save();
+    c.rotate(vrid);
     if (tema === 'lekplats') {
-      ctx.clip();
+      c.clip();
       for (const [a, f] of [[0, farg['boll-kant']], [2.094, farg['boll-2']], [4.189, '#ffd23f']]) {
-        ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, r, a, a + 1.047); ctx.closePath();
-        ctx.fillStyle = f; ctx.fill();
+        c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, r, a, a + 1.047); c.closePath();
+        c.fillStyle = f; c.fill();
       }
     } else if (tema === 'djungel') {
-      ctx.beginPath(); ctx.ellipse(0, -r * 0.35, r * 0.55, r * 0.22, 0, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fill();
-      ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(3, -r - 7);
-      ctx.strokeStyle = '#3f7a3a'; ctx.lineWidth = 3; ctx.stroke();
+      c.beginPath(); c.ellipse(0, -r * 0.35, r * 0.55, r * 0.22, 0, 0, Math.PI * 2);
+      c.fillStyle = 'rgba(255,255,255,.35)'; c.fill();
+      c.beginPath(); c.moveTo(0, -r); c.lineTo(3, -r - 7);
+      c.strokeStyle = '#3f7a3a'; c.lineWidth = 3; c.stroke();
     } else if (tema === 'oken') {
-      ctx.beginPath(); ctx.arc(0, 0, r * 0.55, 0, Math.PI * 2);
-      ctx.strokeStyle = farg['boll-kant']; ctx.lineWidth = 2.5; ctx.stroke();
+      c.beginPath(); c.arc(0, 0, r * 0.55, 0, Math.PI * 2);
+      c.strokeStyle = farg['boll-kant']; c.lineWidth = 2.5; c.stroke();
     } else {
-      ctx.beginPath(); ctx.moveTo(-r + 4, 0); ctx.lineTo(r - 4, 0);
-      ctx.strokeStyle = farg['boll-kant']; ctx.lineWidth = 3; ctx.stroke();
+      c.beginPath(); c.moveTo(-r + 4, 0); c.lineTo(r - 4, 0);
+      c.strokeStyle = farg['boll-kant']; c.lineWidth = 3; c.stroke();
     }
-    ctx.restore();
-    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2);
-    ctx.lineWidth = 3; ctx.strokeStyle = farg['boll-kant']; ctx.stroke();
+    c.restore();
+    c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2);
+    c.lineWidth = 3; c.strokeStyle = farg['boll-kant']; c.stroke();
+  }
+
+  /* ---------- Saker ur samlingen: bollar, hattar, spår och firanden ----------
+     Bara utseende. Allt ritas med origo i bollens mitt och skalas efter radien. */
+  const nu = () => performance.now() / 1000;
+  function cirkel(c, x, y, r) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); }
+  function stjarnform(c, x, y, R, rot, uddar = 5, inre = 0.45) {
+    c.beginPath();
+    for (let i = 0; i < uddar * 2; i++) {
+      const a = rot - Math.PI / 2 + i * Math.PI / uddar, rr = i % 2 ? R * inre : R;
+      c.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+    }
+    c.closePath();
+  }
+  function glimt(c, x, y, R) {
+    const s = R * (0.6 + 0.4 * Math.sin(nu() * 5));
+    stjarnform(c, x, y, s, 0, 4, 0.25); c.fillStyle = '#fff'; c.fill();
+  }
+
+  // Varje boll: fyll, klipp, mönster som rullar med vrid, kant.
+  const SKAL = {
+    fotboll(c, r, v) {
+      cirkel(c, 0, 0, r); c.fillStyle = '#fff'; c.fill();
+      c.save(); c.clip(); c.rotate(v); c.fillStyle = '#222';
+      stjarnform(c, 0, 0, r * 0.34, 0, 5, 0.81); c.fill();
+      for (let i = 0; i < 5; i++) {
+        const a = -Math.PI / 2 + i * Math.PI * 2 / 5;
+        stjarnform(c, Math.cos(a) * r * 0.98, Math.sin(a) * r * 0.98, r * 0.3, a + Math.PI / 2, 5, 0.81); c.fill();
+      }
+      c.restore();
+      cirkel(c, 0, 0, r); c.lineWidth = r * 0.12; c.strokeStyle = '#222'; c.stroke();
+    },
+    nyckelpiga(c, r, v) {
+      cirkel(c, 0, 0, r); c.fillStyle = '#e5322d'; c.fill();
+      c.save(); c.clip(); c.rotate(v); c.fillStyle = '#1a1a1a';
+      cirkel(c, 0, -r, r * 0.55); c.fill();
+      c.fillRect(-r * 0.05, -r, r * 0.1, r * 2);
+      for (const [x, y, s] of [[-0.48, -0.15, 0.17], [0.48, -0.15, 0.17], [-0.45, 0.45, 0.15], [0.45, 0.45, 0.15], [-0.2, 0.75, 0.1], [0.2, 0.75, 0.1]]) {
+        cirkel(c, x * r, y * r, s * r); c.fill();
+      }
+      c.restore();
+      cirkel(c, 0, 0, r); c.lineWidth = r * 0.12; c.strokeStyle = '#7a1210'; c.stroke();
+    },
+    planet(c, r, v) {
+      const ring = (a, b) => {
+        c.save(); c.rotate(-0.35); c.beginPath(); c.ellipse(0, 0, r * 1.65, r * 0.42, 0, a, b);
+        c.strokeStyle = '#e9cf94'; c.lineWidth = r * 0.2; c.stroke(); c.restore();
+      };
+      ring(Math.PI, Math.PI * 2);                    // bakre halvan, bollen täcker mitten
+      cirkel(c, 0, 0, r); c.fillStyle = '#e0a35c'; c.fill();
+      c.save(); c.clip(); c.rotate(v);
+      for (const [y, h, f] of [[-0.6, 0.22, '#c47f3c'], [-0.1, 0.18, '#f0c27f'], [0.35, 0.24, '#c47f3c']]) { c.fillStyle = f; c.fillRect(-r, y * r, r * 2, h * r); }
+      c.restore();
+      cirkel(c, 0, 0, r); c.lineWidth = r * 0.1; c.strokeStyle = '#a8692e'; c.stroke();
+      ring(0, Math.PI);
+    },
+    melon(c, r, v) {
+      cirkel(c, 0, 0, r); c.fillStyle = '#3aa94f'; c.fill();
+      c.save(); c.clip(); c.rotate(v); c.fillStyle = '#1d6b2c';
+      for (let i = -2; i <= 2; i++) { c.beginPath(); c.ellipse(i * r * 0.45, 0, r * 0.11, r * 1.1, 0, 0, Math.PI * 2); c.fill(); }
+      c.restore();
+      cirkel(c, 0, 0, r); c.lineWidth = r * 0.12; c.strokeStyle = '#155224'; c.stroke();
+    },
+    jorden(c, r, v) {
+      cirkel(c, 0, 0, r); c.fillStyle = '#3f8fe0'; c.fill();
+      c.save(); c.clip(); c.rotate(v); c.fillStyle = '#4caf50';
+      for (const [x, y, a, b, w] of [[-0.4, -0.3, 0.42, 0.28, 0.4], [0.38, 0.25, 0.36, 0.3, -0.3], [0.15, -0.72, 0.28, 0.14, 0], [-0.2, 0.65, 0.3, 0.16, 0.2]]) {
+        c.beginPath(); c.ellipse(x * r, y * r, a * r, b * r, w, 0, Math.PI * 2); c.fill();
+      }
+      c.restore();
+      cirkel(c, 0, 0, r); c.lineWidth = r * 0.12; c.strokeStyle = '#1f5fa8'; c.stroke();
+    },
+    glad(c, r, v) {
+      cirkel(c, 0, 0, r); c.fillStyle = '#ffd23f'; c.fill();
+      c.save(); c.rotate(v); c.fillStyle = '#3a2a00';
+      cirkel(c, -r * 0.35, -r * 0.25, r * 0.13); c.fill();
+      cirkel(c, r * 0.35, -r * 0.25, r * 0.13); c.fill();
+      c.beginPath(); c.arc(0, r * 0.02, r * 0.5, Math.PI * 0.2, Math.PI * 0.8);
+      c.strokeStyle = '#3a2a00'; c.lineWidth = r * 0.12; c.lineCap = 'round'; c.stroke(); c.lineCap = 'butt';
+      c.restore();
+      cirkel(c, 0, 0, r); c.lineWidth = r * 0.12; c.strokeStyle = '#c99a00'; c.stroke();
+    },
+    regnbage(c, r, v) {
+      const f = ['#e5484d', '#f08a24', '#ffd23f', '#2fb36d', '#3d7be8', '#8e6cd8'];
+      c.save(); c.rotate(v);
+      f.forEach((x, i) => { c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, r, i * Math.PI / 3, (i + 1) * Math.PI / 3); c.closePath(); c.fillStyle = x; c.fill(); });
+      c.restore();
+      cirkel(c, 0, 0, r * 0.3); c.fillStyle = '#fff'; c.fill();
+      cirkel(c, 0, 0, r); c.lineWidth = r * 0.1; c.strokeStyle = '#fff'; c.stroke();
+    },
+    guld(c, r, v) {
+      const g = c.createRadialGradient(-r * 0.35, -r * 0.35, r * 0.1, 0, 0, r);
+      g.addColorStop(0, '#fff6c2'); g.addColorStop(0.5, '#f5c02e'); g.addColorStop(1, '#b8860b');
+      cirkel(c, 0, 0, r); c.fillStyle = g; c.fill();
+      c.save(); c.rotate(v); c.beginPath(); c.moveTo(-r * 0.6, 0); c.lineTo(r * 0.6, 0);
+      c.strokeStyle = 'rgba(154,111,0,.5)'; c.lineWidth = r * 0.1; c.stroke(); c.restore();
+      cirkel(c, 0, 0, r); c.lineWidth = r * 0.1; c.strokeStyle = '#9a6f00'; c.stroke();
+      glimt(c, -r * 0.4, -r * 0.42, r * 0.38);
+    },
+    disco(c, r, v) {
+      const ton = ['#dfe7ef', '#b9c6d3', '#8796a6', '#f5f8fb', '#a9b7c5'];
+      cirkel(c, 0, 0, r); c.fillStyle = '#5d6b79'; c.fill();
+      c.save(); c.clip(); c.rotate(v);
+      const s = r * 0.4;
+      for (let i = -3; i < 3; i++) for (let j = -3; j < 3; j++) {
+        c.fillStyle = ton[Math.abs(i * 7 + j * 13) % ton.length];
+        c.fillRect(i * s + 1, j * s + 1, s - 2, s - 2);
+      }
+      c.restore();
+      cirkel(c, 0, 0, r); c.lineWidth = r * 0.1; c.strokeStyle = '#5d6b79'; c.stroke();
+      glimt(c, r * 0.35, -r * 0.45, r * 0.4);
+    }
+  };
+  function ritaSkal(c, r, vrid, id) {
+    if (!SKAL[id]) return ritaTemaboll(c, r, vrid);
+    c.save(); SKAL[id](c, r, vrid); c.restore();
+  }
+
+  // Hattar vrids inte med bollen utan sitter alltid på toppen.
+  const HATTAR = {
+    keps(c, r) {
+      c.beginPath(); c.arc(0, -r * 0.55, r * 0.78, Math.PI, Math.PI * 2); c.closePath();
+      c.fillStyle = '#3d7be8'; c.fill();
+      c.beginPath(); c.ellipse(r * 0.6, -r * 0.57, r * 0.62, r * 0.14, 0, 0, Math.PI * 2);
+      c.fillStyle = '#2a5bb8'; c.fill();
+      cirkel(c, 0, -r * 1.33, r * 0.12); c.fill();
+    },
+    party(c, r) {
+      c.rotate(0.18);
+      c.beginPath(); c.moveTo(-r * 0.5, -r * 0.78); c.lineTo(r * 0.5, -r * 0.78); c.lineTo(0, -r * 2.05); c.closePath();
+      c.fillStyle = '#e5484d'; c.fill();
+      c.save(); c.clip(); c.strokeStyle = '#ffd23f'; c.lineWidth = r * 0.16;
+      for (let y = -0.85; y > -2.1; y -= 0.38) { c.beginPath(); c.moveTo(-r, y * r + r * 0.25); c.lineTo(r, y * r - r * 0.25); c.stroke(); }
+      c.restore();
+      cirkel(c, 0, -r * 2.05, r * 0.2); c.fillStyle = '#ffd23f'; c.fill();
+    },
+    krona(c, r) {
+      c.beginPath();
+      for (const [x, y] of [[-0.62, -0.72], [-0.62, -1.28], [-0.31, -0.98], [0, -1.48], [0.31, -0.98], [0.62, -1.28], [0.62, -0.72]]) c.lineTo(x * r, y * r);
+      c.closePath(); c.fillStyle = '#f5c02e'; c.fill();
+      c.lineWidth = r * 0.08; c.lineJoin = 'round'; c.strokeStyle = '#b8860b'; c.stroke();
+      for (const [x, f] of [[-0.36, '#3d7be8'], [0, '#e5484d'], [0.36, '#2fb36d']]) { cirkel(c, x * r, -r * 0.88, r * 0.1); c.fillStyle = f; c.fill(); }
+    },
+    propeller(c, r) {
+      ['#e5484d', '#ffd23f', '#2fb36d', '#3d7be8'].forEach((f, i) => {
+        c.beginPath(); c.moveTo(0, -r * 0.55); c.arc(0, -r * 0.55, r * 0.8, Math.PI + i * Math.PI / 4, Math.PI + (i + 1) * Math.PI / 4); c.closePath();
+        c.fillStyle = f; c.fill();
+      });
+      c.beginPath(); c.moveTo(0, -r * 1.35); c.lineTo(0, -r * 1.68); c.strokeStyle = '#555'; c.lineWidth = r * 0.09; c.stroke();
+      c.save(); c.translate(0, -r * 1.7); c.scale(Math.cos(nu() * 14), 1);
+      c.fillStyle = '#e5484d';
+      c.beginPath(); c.ellipse(-r * 0.45, 0, r * 0.45, r * 0.12, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#3d7be8';
+      c.beginPath(); c.ellipse(r * 0.45, 0, r * 0.45, r * 0.12, 0, 0, Math.PI * 2); c.fill();
+      c.restore();
+      cirkel(c, 0, -r * 1.7, r * 0.1); c.fillStyle = '#555'; c.fill();
+    },
+    trollkarl(c, r) {
+      c.beginPath(); c.moveTo(-r * 0.6, -r * 0.8);
+      c.quadraticCurveTo(-r * 0.25, -r * 1.75, r * 0.5, -r * 2.2);
+      c.quadraticCurveTo(r * 0.15, -r * 1.5, r * 0.6, -r * 0.8); c.closePath();
+      c.fillStyle = '#6d4fc2'; c.fill();
+      c.beginPath(); c.ellipse(0, -r * 0.8, r * 1.05, r * 0.22, 0, 0, Math.PI * 2); c.fillStyle = '#5b3fa8'; c.fill();
+      c.fillStyle = '#ffd23f';
+      stjarnform(c, -r * 0.08, -r * 1.2, r * 0.17, 0.2); c.fill();
+      stjarnform(c, r * 0.18, -r * 1.65, r * 0.11, -0.3); c.fill();
+    }
+  };
+  function ritaHatt(c, r, id) {
+    if (!HATTAR[id]) return;
+    c.save(); HATTAR[id](c, r); c.restore();
+  }
+
+  // Spår: punkter från äldst till nyast, i världskoordinater.
+  function ritaSpar(c, pts, r, id) {
+    if (pts.length < 2 || id === 'inget') return;
+    const n = pts.length;
+    c.save();
+    if (id === 'regnbage') {
+      c.lineCap = 'round';
+      for (let i = 1; i < n; i++) {
+        const a = i / n;
+        c.beginPath(); c.moveTo(pts[i - 1].x, pts[i - 1].y); c.lineTo(pts[i].x, pts[i].y);
+        c.strokeStyle = `hsl(${(i * 18 + nu() * 200) % 360} 85% 60%)`; c.globalAlpha = 0.25 + a * 0.6;
+        c.lineWidth = r * (0.3 + a * 0.9); c.stroke();
+      }
+    } else {
+      for (let i = 0; i < n; i++) {
+        const a = (i + 1) / n, p = pts[i];
+        if (id === 'prickar') {
+          c.globalAlpha = a * 0.7; cirkel(c, p.x, p.y, r * 0.28 * (0.4 + a * 0.6)); c.fillStyle = farg['boll-kant']; c.fill();
+        } else if (id === 'bubblor' && i % 2 === 0) {
+          c.globalAlpha = a * 0.85; cirkel(c, p.x + Math.sin(i * 1.7) * r * 0.3, p.y - (1 - a) * r * 0.9, r * (0.12 + 0.28 * (1 - a)));
+          c.strokeStyle = '#4fb3e8'; c.lineWidth = 2; c.stroke();
+        } else if (id === 'stjarnor' && i % 2 === 0) {
+          c.globalAlpha = a; stjarnform(c, p.x + Math.sin(i * 12.9) * r * 0.5, p.y + Math.cos(i * 7.3) * r * 0.5, r * 0.15 + r * 0.25 * a, i);
+          c.fillStyle = i % 4 ? '#f5b301' : '#ffe680'; c.fill();
+        }
+      }
+    }
+    c.restore();
+  }
+
+  /* Firande när banan är klarad. Partiklar i världskoordinater; t räknas i sekunder. */
+  let fest = [];
+  const FEST_FARGER = ['#e5484d', '#f5c02e', '#2fb36d', '#3d7be8', '#8e6cd8', '#f08a24'];
+  const valj = (a) => a[Math.floor(Math.random() * a.length)];
+  function startaFest(id) {
+    fest = [];
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const R = Math.random;
+    const korgar = bana.foremal.filter((o) => o.typ === 'korg');
+    if (id === 'ballonger') {
+      for (let i = 0; i < 14; i++) fest.push({ form: 'ballong', x: 60 + R() * 880, y: 640 + R() * 160, vx: 0, vy: -2.2 - R() * 1.6, g: 0, svaj: R() * 6, farg: valj(FEST_FARGER), s: 20 + R() * 10, liv: 6, t: 0, vanta: 0 });
+    } else if (id === 'fyrverkeri') {
+      for (let b = 0; b < 6; b++) {
+        const cx = 150 + R() * 700, cy = 70 + R() * 220, f = valj(FEST_FARGER);
+        for (let j = 0; j < 44; j++) {
+          const a = j / 44 * Math.PI * 2, v = 2 + R() * 4;
+          fest.push({ form: 'gnista', x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: 0.05, drag: 0.97, farg: j % 5 ? f : '#fff', s: 3, liv: 1.6, t: 0, vanta: b * 0.35 });
+        }
+      }
+    } else if (id === 'stjarnregn') {
+      for (let i = 0; i < 45; i++) fest.push({ form: 'stjarna', x: R() * 1000, y: -30 - R() * 40, vx: (R() - 0.5), vy: 2 + R() * 3, g: 0.03, rot: R() * 6, vrot: (R() - 0.5) * 0.2, farg: valj(['#f5b301', '#ffd23f', '#fff3b0']), s: 8 + R() * 8, liv: 4.5, t: 0, vanta: R() * 2 });
+    } else {
+      for (const o of korgar) for (let i = 0; i < 60; i++) {
+        fest.push({ form: 'bit', x: o.x, y: o.y - o.h, vx: (R() - 0.5) * 10, vy: -6 - R() * 9, g: 0.3, drag: 0.99, rot: R() * 6, vrot: (R() - 0.5) * 0.4, farg: valj(FEST_FARGER), s: 6 + R() * 5, liv: 2.8, t: 0, vanta: 0 });
+      }
+    }
+  }
+  function ritaPartikel(c, p, alfa) {
+    c.globalAlpha = alfa;
+    c.fillStyle = p.farg;
+    if (p.form === 'bit') {
+      c.save(); c.translate(p.x, p.y); c.rotate(p.rot); c.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); c.restore();
+    } else if (p.form === 'gnista') {
+      cirkel(c, p.x, p.y, p.s); c.fill();
+    } else if (p.form === 'stjarna') {
+      stjarnform(c, p.x, p.y, p.s, p.rot); c.fill();
+    } else if (p.form === 'ballong') {
+      c.beginPath(); c.moveTo(p.x, p.y + p.s); c.quadraticCurveTo(p.x + 8, p.y + p.s * 1.6, p.x - 2, p.y + p.s * 2.4);
+      c.strokeStyle = farg.sten; c.lineWidth = 1.5; c.stroke();
+      c.beginPath(); c.ellipse(p.x, p.y, p.s * 0.78, p.s, 0, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.moveTo(p.x, p.y + p.s - 2); c.lineTo(p.x - 4, p.y + p.s + 5); c.lineTo(p.x + 4, p.y + p.s + 5); c.closePath(); c.fill();
+      c.beginPath(); c.ellipse(p.x - p.s * 0.3, p.y - p.s * 0.35, p.s * 0.15, p.s * 0.25, 0.5, 0, Math.PI * 2);
+      c.fillStyle = 'rgba(255,255,255,.45)'; c.fill();
+    }
+  }
+  function ritaFest(c, dt) {
+    if (!fest.length) return;
+    const f = dt / (1000 / 60);
+    c.save();
+    fest = fest.filter((p) => {
+      p.t += dt / 1000;
+      const alder = p.t - p.vanta;
+      if (alder < 0) return true;
+      if (alder > p.liv) return false;
+      if (p.drag) { p.vx *= Math.pow(p.drag, f); p.vy *= Math.pow(p.drag, f); }
+      p.vy += p.g * f;
+      p.x += p.vx * f + (p.form === 'ballong' ? Math.sin(p.t * 2 + p.svaj) * 0.6 * f : 0);
+      p.y += p.vy * f;
+      if (p.vrot) p.rot += p.vrot * f;
+      ritaPartikel(c, p, 1 - Math.pow(alder / p.liv, 3));
+      return true;
+    });
+    c.restore();
   }
 
   /* Kulisser bakom banan. Svaga färger så att banans delar syns tydligt. */
@@ -776,7 +1192,7 @@
     ctx.restore();
   }
 
-  function rita() {
+  function rita(dt) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, duk.width, duk.height);
     ctx.translate(ox, oy);
@@ -803,6 +1219,10 @@
       ctx.fillRect(o.x - o.b / 2, o.y - o.h, o.b, o.h);
       ctx.globalAlpha = 1;
     }
+    if (sim) {
+      const typ = utseende(aktiv()).spar;
+      for (const b of sim.bollar) ritaSpar(ctx, sparPunkter.get(b.id) || [], b.circleRadius, typ);
+    }
     let kroppar;
     if (sim) kroppar = Composite.allBodies(sim.world);
     else kroppar = statiska.concat(delKroppar);
@@ -818,7 +1238,33 @@
       ritaKropp(k, m);
     }
     for (const k of sist) ritaKropp(k, null);
+    ritaFest(ctx, dt);
     ctx.restore();
+  }
+
+  /* Förhandsvisning i samlingen: bollen studsar fram och tillbaka med hatt och spår. */
+  const visningsSpar = [];
+  function ritaForhands() {
+    const duk2 = $('#forhands');
+    const box = duk2.getBoundingClientRect();
+    const d = window.devicePixelRatio || 1;
+    if (duk2.width !== Math.round(box.width * d) || duk2.height !== Math.round(box.height * d)) {
+      duk2.width = Math.round(box.width * d); duk2.height = Math.round(box.height * d);
+    }
+    const c = duk2.getContext('2d');
+    const W = box.width, H = box.height, r = 22, golv = H - 14, t = nu();
+    c.setTransform(d, 0, 0, d, 0, 0);
+    const g = c.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, farg.himmel); g.addColorStop(1, farg.papper);
+    c.fillStyle = g; c.fillRect(0, 0, W, H);
+    c.fillStyle = farg.sten; c.fillRect(0, golv, W, H - golv);
+    const x = W / 2 + Math.sin(t * 1.1) * (W / 2 - 50);
+    const y = golv - r - Math.abs(Math.sin(t * 3)) * (H - r * 2 - 54);
+    visningsSpar.push({ x, y });
+    if (visningsSpar.length > 30) visningsSpar.shift();
+    const u = utseende(aktiv());
+    ritaSpar(c, visningsSpar, r, u.spar);
+    c.save(); c.translate(x, y); ritaSkal(c, r, x / r, u.boll); ritaHatt(c, r, u.hatt); c.restore();
   }
 
   /* ---------- Huvudslinga med fast tidssteg ---------- */
@@ -834,8 +1280,9 @@
         steg(n);
       } else ack = 0;
       if (drag && drag.flyttad) fel = Motor.iVagen(bana, placerade);
-      rita();
+      rita(dt);
     }
+    if (!$('#samling').hidden) ritaForhands();
     requestAnimationFrame(slinga);
   }
 

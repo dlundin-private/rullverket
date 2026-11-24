@@ -20,7 +20,7 @@
 - Snäpp till rutnätet för de yngsta.
 
 ## Fler banor
-- Banor 36–50.
+- Banor 46–60.
 - Kastaren (bana 14) är den minst förlåtande av banorna 11–20. Gör landningen bredare om barnen kör fast.
 
 ## Teman
@@ -30,3 +30,4 @@
 
 ## Banor att hålla koll på
 - Dubbelhoppet (bana 33) och Två korgar (bana 28) är de minst förlåtande av banorna 21–35. Gör dem lättare om barnen kör fast.
+- Gungkastet (bana 43) och Mästerverket (bana 45) är de minst förlåtande av banorna 36–45. Gör dem lättare om barnen kör fast.

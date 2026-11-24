@@ -31,8 +31,22 @@
     <h2 id="halsning"></h2>
     <span id="total" class="total"></span>
   </header>
-  <div id="teman" class="teman" role="group" aria-label="Tema"></div>
+  <div class="temarad">
+    <div id="teman" class="teman" role="group" aria-label="Tema"></div>
+    <button id="till-samling" class="knapp samling-knapp">🎁 Samlingen<span class="bricka" hidden></span></button>
+  </div>
   <div id="bangrid" class="bangrid"></div>
+</section>
+
+<section id="samling" class="skarm" hidden>
+  <header class="kartrad">
+    <button id="fran-samling" class="knapp tyst">&#8592; Banor</button>
+    <h2>Samlingen</h2>
+    <span id="samling-total" class="total"></span>
+  </header>
+  <p class="samling-ingress">Samla stjärnor så låser du upp nya saker. Tryck på en sak för att använda den.</p>
+  <canvas id="forhands" class="forhands" aria-hidden="true"></canvas>
+  <div id="samlingar" class="samlingar"></div>
 </section>
 
 <section id="spel" class="skarm" hidden>
@@ -71,6 +85,7 @@
       <div id="res-stjarnor" class="res-stjarnor" aria-live="polite"></div>
       <h2 id="res-rubrik">Klart!</h2>
       <p id="res-text"></p>
+      <p id="res-nytt" class="res-nytt" hidden></p>
       <div class="kort-knappar">
         <button id="res-nasta" class="knapp stor">Nästa bana</button>
         <button id="res-farre" class="knapp tyst">Försök med färre delar</button>

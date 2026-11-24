@@ -12,7 +12,7 @@ Ett fysikpussel för barn 6–13 år. Varje bana har en eller flera bollar och e
 ## Filer
 - `public/index.html`, `style.css`: skal och utseende. Färger är CSS-variabler på `:root` med mörkt läge.
 - `public/motor.js`: spelmotorn. Bygger en Matter.js-värld av en bana plus placerade delar. Ingen DOM här, så samma fil körs i Node-testerna.
-- `public/spel.js`: gränssnittet: profiler, bankarta, dra-och-släpp, körning, ritning på canvas, sparning i localStorage (`rullverket-v1`). När spelet körs som publicerad länk i claude.ai sparas samma data också i artefaktens databas under `data/users/<id>/rullverket` (fältet `json`), eftersom Claude-appen inte alltid behåller localStorage. Den nyaste versionen vinner (fältet `andrad`). Utan `window.claude` används bara localStorage.
+- `public/spel.js`: gränssnittet: profiler, bankarta, samlingen, dra-och-släpp, körning, ritning på canvas, sparning i localStorage (`rullverket-v1`). När spelet körs som publicerad länk i claude.ai sparas samma data också i artefaktens databas under `data/users/<id>/rullverket` (fältet `json`), eftersom Claude-appen inte alltid behåller localStorage. Den nyaste versionen vinner (fältet `andrad`). Utan `window.claude` används bara localStorage.
 - `public/banor.json`: alla banor. Det enda som behöver ändras för att lägga till en bana.
 - `public/vendor/matter.min.js`: Matter.js 0.19.0, låst version. Uppgradera inte utan att köra testerna.
 - `public/sw.js`: offline-cache. **Höj `VERSION` vid varje ändring**, annars visar installerade kopior den gamla versionen.
@@ -76,6 +76,14 @@ Spelaren väljer tema på bankartan: Verkstad (standard), Djungel, Öken eller L
 - I `spel.js` ritar `ritaKulisser()` bakgrunden, `ritaVagg()` väggarnas material och `ritaBoll()` bollen för varje tema. Lekplatsens väggar får färg efter `rv.nr`, väggens ordning i banan, så att färgen är densamma före och under körning.
 - Kulisserna ska vara svaga (låg opacitet) så att banans delar alltid syns tydligt.
 - Nytt tema: lägg till ett block i `style.css`, en rad i `TEMAN` i `spel.js` och vid behov en gren i de tre ritfunktionerna.
+
+## Samlingen
+Spelaren låser upp kosmetiska saker med stjärnor: bollar, hattar, spår efter bollen och firanden när en bana är klarad. Knappen Samlingen sitter på bankartan och visar hur många nya saker som har låsts upp. Sakerna ändrar bara utseendet, aldrig fysiken.
+- `SAMLING` i `spel.js` listar sakerna per typ (`boll`, `hatt`, `spar`, `firande`). `krav` är antal stjärnor totalt. Inget förbrukas, så en upplåst sak förblir upplåst. Den första saken i varje typ är standard och kräver 0.
+- I profilen sparas valen i `utseende` och de upplåsta saker spelaren har sett i `sedda`.
+- Ritningen: `SKAL` (bollar), `HATTAR`, `ritaSpar()` och `startaFest()` med `ritaPartikel()`. Bollen `tema` är temabollen från `ritaTemaboll()`.
+- Ny sak: lägg till en rad i `SAMLING` och en funktion i `SKAL` eller `HATTAR`, eller en gren i `ritaSpar()` eller `startaFest()`. Låt de dyraste kraven ligga under det totala antalet stjärnor, `banor.length * 3`.
+- Firandet visas inte om enheten har valt minskade rörelser (`prefers-reduced-motion`).
 
 ## Publicering
 GitHub Actions (`.github/workflows/pages.yml`) kör `npm test` vid varje push till `main` och publicerar sedan mappen `public/` på GitHub Pages. Misslyckas en bana publiceras ingenting. Adressen är https://rullverket.chandler.se (filen `public/CNAME`, DNS-posten pekar på `dlundin-private.github.io`). I repots inställningar ska Pages ha källan "GitHub Actions".
